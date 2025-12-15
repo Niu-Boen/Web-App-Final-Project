@@ -21,6 +21,8 @@ class MenuItem extends Model
         'is_featured',
         'preparation_time',
         'stock_quantity',
+        'average_rating',
+        'reviews_count',
     ];
 
     protected $casts = [
@@ -31,6 +33,8 @@ class MenuItem extends Model
         'is_featured' => 'boolean',
         'preparation_time' => 'integer',
         'stock_quantity' => 'integer',
+        'average_rating' => 'decimal:2',
+        'reviews_count' => 'integer',
     ];
 
     // Relationships
@@ -43,6 +47,34 @@ class MenuItem extends Model
     {
         return $this->hasMany(OrderItem::class);
     }
+
+    public function likes()
+    {
+        return $this->hasMany(MenuItemLike::class);
+    }
+
+    public function likedByUsers()
+    {
+        return $this->belongsToMany(User::class, 'menu_item_likes');
+    }
+
+    // Helper methods
+    public function isLikedBy($userId)
+    {
+        return $this->likes()->where('user_id', $userId)->exists();
+    }
+
+    public function getLikesCountAttribute()
+    {
+        return $this->likes()->count();
+    }
+
+    public function reviews()
+    {
+        return $this->hasMany(MenuItemReview::class);
+    }
+
+
 
     // Scopes
     public function scopeAvailable($query)

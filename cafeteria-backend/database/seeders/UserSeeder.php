@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
             'password' => bcrypt('password'),
             'role' => 'admin',
             'gender' => 'male',
-            'account_balance' => 0,
+            'account_balance' => 11000, // Initial balance for male admin
             'is_active' => true,
         ]);
 
@@ -32,7 +32,19 @@ class UserSeeder extends Seeder
             'password' => bcrypt('password'),
             'role' => 'staff',
             'gender' => 'female',
-            'account_balance' => 0,
+            'account_balance' => 10000, // Initial balance for female staff
+            'is_active' => true,
+        ]);
+
+        // Create finance manager user
+        \App\Models\User::create([
+            'student_id' => 'FINANCE001',
+            'name' => 'Finance Manager',
+            'email' => 'finance@apiu.edu',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+            'gender' => 'male',
+            'account_balance' => 11000, // Initial balance for male finance manager
             'is_active' => true,
         ]);
 

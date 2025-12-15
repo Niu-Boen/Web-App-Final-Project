@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
@@ -11,7 +11,9 @@ const Home = () => {
   const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
-    dispatch(fetchMenuItems({ featured: true }));
+    dispatch(fetchMenuItems({ featured: true })).catch(error => {
+      console.error('Failed to fetch menu items:', error);
+    });
   }, [dispatch]);
 
   const featuredItems = menuItems.filter(item => item.is_featured).slice(0, 6);
@@ -31,7 +33,7 @@ const Home = () => {
             {user ? (
               <div className="space-y-4">
                 <p className="text-lg">
-                  Welcome back, {user.name}! Your balance: ฿{user.account_balance.toFixed(2)}
+                  Welcome back, {user.name}! Your balance: ฿{parseFloat(user.account_balance.toString()).toFixed(2)}
                 </p>
                 <Link to="/menu" className="inline-block bg-white text-primary-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
                   Order Now
@@ -114,7 +116,7 @@ const Home = () => {
                       <p className="text-gray-600 text-sm mb-3">{item.description}</p>
                       <div className="flex justify-between items-center">
                         <span className="text-xl font-bold text-primary-600">
-                          ฿{item.price.toFixed(2)}
+                          ฿{parseFloat(item.price.toString()).toFixed(2)}
                         </span>
                         <span className="text-sm text-gray-500">
                           {item.preparation_time} min
@@ -139,3 +141,4 @@ const Home = () => {
 };
 
 export default Home;
+

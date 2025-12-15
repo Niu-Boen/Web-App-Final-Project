@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
+import { Eye, EyeOff } from 'lucide-react';
 import { RootState, AppDispatch } from '../store/store';
 import { login, clearError } from '../store/slices/authSlice';
 
@@ -15,6 +16,8 @@ const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading, error } = useSelector((state: RootState) => state.auth);
+  
+  const [showPassword, setShowPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors } } = useForm<LoginForm>();
 
@@ -85,7 +88,7 @@ const Login = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   {...register('password', {
                     required: 'Password is required',
@@ -94,10 +97,21 @@ const Login = () => {
                       message: 'Password must be at least 6 characters'
                     }
                   })}
-                  type="password"
-                  className="input"
+                  type={showPassword ? 'text' : 'password'}
+                  className="input pr-10"
                   placeholder="Enter your password"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
                 )}
@@ -129,6 +143,7 @@ const Login = () => {
               <p><strong>Student:</strong> john@student.apiu.edu / password</p>
               <p><strong>Staff:</strong> staff@apiu.edu / password</p>
               <p><strong>Admin:</strong> admin@apiu.edu / password</p>
+              <p><strong>Finance Manager:</strong> finance@apiu.edu / password</p>
             </div>
           </div>
         </div>
@@ -138,3 +153,4 @@ const Login = () => {
 };
 
 export default Login;
+

@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useForm } from 'react-hook-form';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
+import { Eye, EyeOff } from 'lucide-react';
 import { RootState, AppDispatch } from '../store/store';
 import { register as registerUser, clearError } from '../store/slices/authSlice';
 
@@ -19,6 +20,9 @@ const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const { user, isLoading, error } = useSelector((state: RootState) => state.auth);
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register, handleSubmit, formState: { errors }, watch } = useForm<RegisterForm>();
   const password = watch('password');
@@ -38,11 +42,40 @@ const Register = () => {
 
   const onSubmit = async (data: RegisterForm) => {
     try {
+      console.log('Submitting registration data:', data);
       await dispatch(registerUser(data)).unwrap();
-      toast.success('Registration successful!');
+      toast.success('Registration successful! Welcome to APIU Cafeteria!');
       navigate('/');
     } catch (error: any) {
-      toast.error(error.message || 'Registration failed');
+      console.error('Registration error:', error);
+      
+      // Handle validation errors from rejected value
+      if (error.errors) {
+        Object.keys(error.errors).forEach(key => {
+          const messages = Array.isArray(error.errors[key]) ? error.errors[key] : [error.errors[key]];
+          messages.forEach((message: string) => {
+            let fieldName = key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+            
+            // Provide helpful suggestions for common errors
+            let errorMessage = `${fieldName}: ${message}`;
+            if (message.includes('already been taken')) {
+              if (key === 'email') {
+                errorMessage += ' Please use a different email address or try logging in if you already have an account.';
+              } else if (key === 'student_id') {
+                errorMessage += ' Please check your student ID or contact support if you believe this is an error.';
+              }
+            }
+            
+            toast.error(errorMessage, {
+              autoClose: 10000,
+            });
+          });
+        });
+      } else if (error.message) {
+        toast.error(error.message);
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
     }
   };
 
@@ -142,8 +175,8 @@ const Register = () => {
                   className="input"
                 >
                   <option value="">Select gender</option>
-                  <option value="male">Male (฿11,000 initial balance)</option>
-                  <option value="female">Female (฿10,000 initial balance)</option>
+                  <option value="male">Male (�?1,000 initial balance)</option>
+                  <option value="female">Female (�?0,000 initial balance)</option>
                 </select>
                 {errors.gender && (
                   <p className="mt-1 text-sm text-red-600">{errors.gender.message}</p>
@@ -155,7 +188,7 @@ const Register = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   {...register('password', {
                     required: 'Password is required',
@@ -164,10 +197,21 @@ const Register = () => {
                       message: 'Password must be at least 8 characters'
                     }
                   })}
-                  type="password"
-                  className="input"
+                  type={showPassword ? 'text' : 'password'}
+                  className="input pr-10"
                   placeholder="Enter your password"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
                 {errors.password && (
                   <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
                 )}
@@ -178,16 +222,27 @@ const Register = () => {
               <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">
                 Confirm Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   {...register('password_confirmation', {
                     required: 'Password confirmation is required',
                     validate: value => value === password || 'Passwords do not match'
                   })}
-                  type="password"
-                  className="input"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  className="input pr-10"
                   placeholder="Confirm your password"
                 />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
                 {errors.password_confirmation && (
                   <p className="mt-1 text-sm text-red-600">{errors.password_confirmation.message}</p>
                 )}
@@ -211,3 +266,4 @@ const Register = () => {
 };
 
 export default Register;
+

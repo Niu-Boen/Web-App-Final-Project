@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -29,6 +30,8 @@ class User extends Authenticatable
         'avatar',
         'last_login_at',
         'is_active',
+        'two_factor_secret',
+        'two_factor_enabled',
     ];
 
     /**
@@ -54,6 +57,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'account_balance' => 'decimal:2',
             'is_active' => 'boolean',
+            'two_factor_enabled' => 'boolean',
         ];
     }
 
@@ -76,6 +80,16 @@ class User extends Authenticatable
     public function activityLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function likedMenuItems()
+    {
+        return $this->belongsToMany(MenuItem::class, 'menu_item_likes');
+    }
+
+    public function menuItemLikes()
+    {
+        return $this->hasMany(MenuItemLike::class);
     }
 
     // Helper methods

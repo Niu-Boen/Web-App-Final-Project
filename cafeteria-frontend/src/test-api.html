@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        async function testAPI() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test categories
+                const categoriesResponse = await fetch('http://localhost:8000/api/categories');
+                const categoriesData = await categoriesResponse.json();
+                results.innerHTML += `<h2>Categories (${categoriesResponse.status})</h2><pre>${JSON.stringify(categoriesData, null, 2)}</pre>`;
+                
+                // Test menu
+                const menuResponse = await fetch('http://localhost:8000/api/menu');
+                const menuData = await menuResponse.json();
+                results.innerHTML += `<h2>Menu (${menuResponse.status})</h2><pre>${JSON.stringify(menuData, null, 2)}</pre>`;
+                
+            } catch (error) {
+                results.innerHTML += `<h2>Error</h2><pre>${error.message}</pre>`;
+            }
+        }
+        
+        testAPI();
+    </script>
+</body>
+</html>

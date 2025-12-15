@@ -3,6 +3,9 @@ import authSlice from './slices/authSlice';
 import menuSlice from './slices/menuSlice';
 import cartSlice from './slices/cartSlice';
 import orderSlice from './slices/orderSlice';
+import adminSlice from './slices/adminSlice';
+import trustedFriendsSlice from './slices/trustedFriendsSlice';
+import likesSlice from './slices/likesSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +13,9 @@ export const store = configureStore({
     menu: menuSlice,
     cart: cartSlice,
     orders: orderSlice,
+    admin: adminSlice,
+    trustedFriends: trustedFriendsSlice,
+    likes: likesSlice,
   },
 });
 

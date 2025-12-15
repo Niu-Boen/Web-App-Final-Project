@@ -140,4 +140,132 @@ class AuthController extends Controller
             'data' => $user->fresh()
         ]);
     }
+
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Current password is incorrect'
+            ], 400);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->new_password)
+        ]);
+
+        // Revoke all existing tokens to force re-login
+        $user->tokens()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Password changed successfully. Please login again with your new password.',
+            'requires_relogin' => true
+        ]);
+    }
+
+    public function enable2FA(Request $request)
+    {
+        $user = $request->user();
+        $secret = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        $user->update([
+            'two_factor_secret' => Hash::make($secret),
+            'two_factor_enabled' => true
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '2FA enabled successfully',
+            'data' => [
+                'secret' => $secret,
+                'message' => 'Please save this secret code: ' . $secret
+            ]
+        ]);
+    }
+
+    public function disable2FA(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'password' => 'required|string',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Password is incorrect'
+            ], 400);
+        }
+
+        $user->update([
+            'two_factor_secret' => null,
+            'two_factor_enabled' => false
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '2FA disabled successfully'
+        ]);
+    }
+
+    public function verify2FA(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'code' => 'required|string|size:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+
+        if (!$user->two_factor_enabled) {
+            return response()->json([
+                'success' => false,
+                'message' => '2FA is not enabled for this account'
+            ], 400);
+        }
+
+        if (!Hash::check($request->code, $user->two_factor_secret)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid 2FA code'
+            ], 400);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => '2FA verification successful'
+        ]);
+    }
 }

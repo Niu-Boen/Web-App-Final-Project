@@ -1,23 +1,33 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { RootState, AppDispatch } from '../store/store';
 import { fetchCategories, fetchMenuItems } from '../store/slices/menuSlice';
 import { addToCart } from '../store/slices/cartSlice';
-import { Search, Plus, Clock, AlertTriangle } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toggleLike, fetchUserLikes } from '../store/slices/likesSlice';
+import { Search, Plus, Clock, AlertTriangle, Heart } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { Category, MenuItem } from '../types';
 
 const Menu = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { categories, menuItems, isLoading } = useSelector((state: RootState) => state.menu);
+  const menuState = useSelector((state: RootState) => state.menu) as any;
+  const categories = menuState?.categories || [];
+  const menuItems = menuState?.menuItems || [];
+  const isLoading = menuState?.isLoading || false;
   const { user } = useSelector((state: RootState) => state.auth);
+  const { likedItems } = useSelector((state: RootState) => state.likes);
   
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     dispatch(fetchCategories());
-    dispatch(fetchMenuItems());
-  }, [dispatch]);
+    dispatch(fetchMenuItems({}));
+    if (user) {
+      dispatch(fetchUserLikes());
+    }
+  }, [dispatch, user]);
 
   const handleCategoryFilter = (categoryId: number | null) => {
     setSelectedCategory(categoryId);
@@ -35,7 +45,7 @@ const Menu = () => {
     }));
   };
 
-  const handleAddToCart = (menuItem: any) => {
+  const handleAddToCart = (menuItem: MenuItem) => {
     if (!user) {
       toast.error('Please login to add items to cart');
       return;
@@ -43,6 +53,32 @@ const Menu = () => {
     
     dispatch(addToCart({ menuItem, quantity: 1 }));
     toast.success(`${menuItem.name} added to cart!`);
+  };
+
+  const handleToggleLike = async (menuItemId: number) => {
+    if (!user) {
+      toast.error('Please login to like items');
+      return;
+    }
+
+    try {
+      const result = await dispatch(toggleLike(menuItemId)).unwrap();
+      // Refresh liked items to get updated list
+      dispatch(fetchUserLikes());
+      
+      if (result.liked) {
+        toast.success('Added to favorites!');
+      } else {
+        toast.success('Removed from favorites!');
+      }
+    } catch (error: any) {
+      console.error('Like toggle error:', error);
+      toast.error(error.message || 'Failed to update like status');
+    }
+  };
+
+  const isItemLiked = (itemId: number) => {
+    return likedItems.some((item: any) => item.id === itemId);
   };
 
   return (
@@ -78,7 +114,7 @@ const Menu = () => {
               >
                 All Items
               </button>
-              {categories.map((category) => (
+              {categories.map((category: Category) => (
                 <button
                   key={category.id}
                   onClick={() => handleCategoryFilter(category.id)}
@@ -103,7 +139,7 @@ const Menu = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {menuItems.map((item) => (
+            {menuItems.map((item: MenuItem) => (
               <div key={item.id} className="card hover:shadow-lg transition-shadow">
                 {item.image && (
                   <img 
@@ -115,11 +151,28 @@ const Menu = () => {
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-semibold">{item.name}</h3>
-                    {item.is_featured && (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                        Featured
-                      </span>
-                    )}
+                    <div className="flex items-center space-x-2">
+                      {user && (
+                        <button
+                          onClick={() => handleToggleLike(item.id)}
+                          className={`p-1 rounded-full transition-colors ${
+                            isItemLiked(item.id)
+                              ? 'text-red-500 hover:text-red-600'
+                              : 'text-gray-400 hover:text-red-500'
+                          }`}
+                        >
+                          <Heart 
+                            size={20} 
+                            fill={isItemLiked(item.id) ? 'currentColor' : 'none'}
+                          />
+                        </button>
+                      )}
+                      {item.is_featured && (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                          Featured
+                        </span>
+                      )}
+                    </div>
                   </div>
                   
                   <p className="text-gray-600 text-sm mb-3">{item.description}</p>
@@ -142,7 +195,7 @@ const Menu = () => {
                   
                   <div className="flex justify-between items-center mb-3">
                     <span className="text-xl font-bold text-primary-600">
-                      ฿{item.price.toFixed(2)}
+                      ฿{parseFloat(item.price.toString()).toFixed(2)}
                     </span>
                     <div className="flex items-center text-sm text-gray-500">
                       <Clock size={14} className="mr-1" />
@@ -150,18 +203,26 @@ const Menu = () => {
                     </div>
                   </div>
                   
-                  <button
-                    onClick={() => handleAddToCart(item)}
-                    disabled={!item.is_available}
-                    className={`w-full btn flex items-center justify-center ${
-                      item.is_available
-                        ? 'btn-primary'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    }`}
-                  >
-                    <Plus size={16} className="mr-2" />
-                    {item.is_available ? 'Add to Cart' : 'Unavailable'}
-                  </button>
+                  <div className="space-y-2">
+                    <Link
+                      to={`/menu/${item.id}`}
+                      className="w-full btn btn-outline flex items-center justify-center text-sm"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => handleAddToCart(item)}
+                      disabled={!item.is_available}
+                      className={`w-full btn flex items-center justify-center ${
+                        item.is_available
+                          ? 'btn-primary'
+                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      <Plus size={16} className="mr-2" />
+                      {item.is_available ? 'Add to Cart' : 'Unavailable'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

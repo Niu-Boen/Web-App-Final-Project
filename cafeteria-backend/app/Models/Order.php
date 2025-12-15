@@ -22,14 +22,32 @@ class Order extends Model
         'confirmed_at',
         'ready_at',
         'completed_at',
+        'order_source',
+        'preparation_time_minutes',
+        'queue_position',
+        'discount_amount',
+        'payment_method',
+        'items_count',
+        'average_item_price',
+        'is_repeat_customer',
+        'customer_order_count',
+        'order_time',
+        'day_of_week',
+        'is_peak_hour',
+        'customer_notes',
     ];
 
     protected $casts = [
         'total_amount' => 'decimal:2',
+        'discount_amount' => 'decimal:2',
+        'average_item_price' => 'decimal:2',
         'pickup_time' => 'datetime',
         'confirmed_at' => 'datetime',
         'ready_at' => 'datetime',
         'completed_at' => 'datetime',
+        'is_repeat_customer' => 'boolean',
+        'is_peak_hour' => 'boolean',
+        'order_time' => 'datetime:H:i',
     ];
 
     // Relationships

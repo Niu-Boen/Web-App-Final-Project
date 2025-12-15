@@ -18,9 +18,14 @@ const initialState: AuthState = {
 
 export const login = createAsyncThunk(
   'auth/login',
-  async (credentials: { email: string; password: string }) => {
-    const response = await api.post<ApiResponse<{ user: User; token: string }>>('/login', credentials);
-    return response.data.data!;
+  async (credentials: { email: string; password: string }, { rejectWithValue }) => {
+    try {
+      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/login', credentials);
+      return response.data.data!;
+    } catch (error: any) {
+      console.error('Login API Error:', error.response?.data);
+      return rejectWithValue(error.response?.data || { message: 'Login failed' });
+    }
   }
 );
 
@@ -33,9 +38,14 @@ export const register = createAsyncThunk(
     password: string;
     password_confirmation: string;
     gender: 'male' | 'female';
-  }) => {
-    const response = await api.post<ApiResponse<{ user: User; token: string }>>('/register', userData);
-    return response.data.data!;
+  }, { rejectWithValue }) => {
+    try {
+      const response = await api.post<ApiResponse<{ user: User; token: string }>>('/register', userData);
+      return response.data.data!;
+    } catch (error: any) {
+      console.error('Register API Error:', error.response?.data);
+      return rejectWithValue(error.response?.data || { message: 'Registration failed' });
+    }
   }
 );
 
@@ -81,7 +91,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Login failed';
+        state.error = action.payload?.message || action.error.message || 'Login failed';
       })
       // Register
       .addCase(register.pending, (state) => {
@@ -96,7 +106,7 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Registration failed';
+        state.error = action.payload?.message || action.error.message || 'Registration failed';
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
