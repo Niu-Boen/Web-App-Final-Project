@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { User, FinancialReport, DashboardStats, ActivityLog, PaginatedResponse, ApiResponse } from '../../types';
+import { User, FinancialReport, DashboardStats, ActivityLog } from '../../types';
 import api from '../../services/api';
 
 interface AdminState {
@@ -211,7 +211,7 @@ const adminSlice = createSlice({
       })
 
       // Reset User Password
-      .addCase(resetUserPassword.fulfilled, (state, action) => {
+      .addCase(resetUserPassword.fulfilled, (_state) => {
         // Password reset doesn't need to update user data in state
       })
 

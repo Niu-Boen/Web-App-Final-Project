@@ -1,5 +1,4 @@
-﻿import React from 'react';
-
+﻿
 function App() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f9fafb', padding: '2rem' }}>

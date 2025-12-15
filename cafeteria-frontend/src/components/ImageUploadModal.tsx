@@ -152,7 +152,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           {uploadedImages.length > 0 ? (
             <div>
               <h4 className="text-md font-medium text-gray-800 mb-3">
-                已上传图片 ({uploadedImages.length})
+                Pictures have been uploaded ({uploadedImages.length})
               </h4>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -185,14 +185,14 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
                           className="flex-1 bg-blue-500 text-white px-2 py-1 rounded text-xs hover:bg-blue-600 transition-colors flex items-center justify-center"
                         >
                           <Check className="w-3 h-3 mr-1" />
-                          选择
+                          select
                         </button>
                         
                         <button
                           onClick={() => deleteImage(image.id)}
                           className="bg-red-500 text-white px-2 py-1 rounded text-xs hover:bg-red-600 transition-colors"
                         >
-                          移除
+                          remove
                         </button>
                       </div>
                     </div>
@@ -203,8 +203,8 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
           ) : (
             <div className="text-center py-8">
               <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <h4 className="text-md font-medium text-gray-600 mb-1">还没有上传任何图片</h4>
-              <p className="text-gray-500 text-sm">上传图片后，它们将显示在这里</p>
+              <h4 className="text-md font-medium text-gray-600 mb-1">No pictures have been uploaded yet</h4>
+              <p className="text-gray-500 text-sm">After uploading the pictures, they will be displayed here</p>
             </div>
           )}
         </div>
@@ -215,7 +215,7 @@ const ImageUploadModal: React.FC<ImageUploadModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors"
           >
-            关闭
+            close
           </button>
         </div>
       </div>
