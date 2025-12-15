@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
 import {
@@ -8,7 +8,6 @@ import {
   removeTrustedFriend,
   fetchPickupOrders,
   pickupOrder,
-  searchUsers,
   clearSearchResults
 } from '../store/slices/trustedFriendsSlice';
 import { TrustedFriend, User, Order } from '../types';
@@ -17,7 +16,7 @@ import api from '../services/api';
 
 const TrustedFriends: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { trustedFriends, pickupOrders, searchResults, loading } = useSelector(
+  const { trustedFriends, pickupOrders, loading } = useSelector(
     (state: RootState) => state.trustedFriends
   );
 
@@ -25,7 +24,12 @@ const TrustedFriends: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
   const [addForm, setAddForm] = useState({
     friend_student_id: '',
     friend_name: '',
@@ -42,45 +46,111 @@ const TrustedFriends: React.FC = () => {
     fetchAllUsers();
   }, [dispatch, activeTab]);
 
+  // Close search results when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const fetchAllUsers = async () => {
     try {
-      const response = await api.get('/trusted-friends/search-users?search=a'); // Search with 'a' to get many users
-      setAllUsers(response.data.data || []);
-    } catch (error) {
+      console.log('Fetching all users...');
+      const response = await api.get('/trusted-friends/search-users'); // Get all users
+      console.log('API response:', response.data);
+      const users = response.data.data || [];
+      console.log('Users received:', users);
+      setAllUsers(users);
+      setFilteredUsers(users);
+    } catch (error: any) {
       console.error('Failed to fetch users:', error);
+      console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
     }
   };
 
-  const handleSearch = async (query: string) => {
+  const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.length >= 2) {
-      console.log('Searching for:', query);
+    setShowSearchResults(query.length > 0);
+    
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    
+    // Set loading state
+    setSearchLoading(true);
+    
+    // Debounce the search
+    searchTimeoutRef.current = setTimeout(async () => {
       try {
-        const result = await dispatch(searchUsers(query)).unwrap();
-        console.log('Search results:', result);
-      } catch (error) {
-        console.error('Search error:', error);
-        toast.error('Failed to search users');
+        // Search from database for real-time results
+        const response = await api.get(`/trusted-friends/search-users?search=${encodeURIComponent(query)}`);
+        const users = response.data.data || [];
+        
+        // Show all users (temporarily remove balance filter for debugging)
+        console.log('API returned users:', users);
+        setFilteredUsers(users);
+        
+        // Debug: log the response
+        console.log('Search API response:', response.data);
+        console.log('Users found:', users.length);
+        
+        // Also update allUsers for consistency
+        setAllUsers(users);
+      } catch (error: any) {
+        console.error('Failed to search users:', error);
+        console.error('Error response:', error.response?.data);
+        console.error('Error status:', error.response?.status);
+        toast.error(`Failed to search users: ${error.response?.data?.message || error.message}`);
+        
+        // Fallback to local filtering if API fails (temporarily remove balance filter)
+        if (query.length === 0) {
+          setFilteredUsers(allUsers);
+        } else {
+          const filtered = allUsers.filter((user: User) => {
+            const searchTerm = query.toLowerCase();
+            return (
+              user.name.toLowerCase().includes(searchTerm) ||
+              user.student_id.toLowerCase().includes(searchTerm) ||
+              user.email.toLowerCase().includes(searchTerm)
+            );
+          });
+          setFilteredUsers(filtered);
+        }
+      } finally {
+        setSearchLoading(false);
       }
-    } else {
-      dispatch(clearSearchResults());
-    }
+    }, 300); // 300ms debounce
   };
 
-  const getFilteredSearchResults = () => {
-    return searchResults.filter(user => user.account_balance > 0);
-  };
 
-  const handleUserSelect = (userId: string) => {
-    const selectedUser = allUsers.find(user => user.id.toString() === userId);
-    if (selectedUser) {
-      setSelectedUserId(userId);
-      setAddForm({
-        ...addForm,
-        friend_student_id: selectedUser.student_id,
-        friend_name: selectedUser.name
-      });
-    }
+
+  const handleUserSelect = (user: User) => {
+    setSelectedUserId(user.id.toString());
+    setAddForm({
+      ...addForm,
+      friend_student_id: user.student_id,
+      friend_name: user.name
+    });
+    setSearchQuery(`${user.name} (${user.student_id})`);
+    setShowSearchResults(false);
   };
 
   const handleAddFriend = async () => {
@@ -119,6 +189,11 @@ const TrustedFriends: React.FC = () => {
       });
       setSelectedUserId('');
       setSearchQuery('');
+      setShowSearchResults(false);
+      setSearchLoading(false);
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
       dispatch(clearSearchResults());
     } catch (error: any) {
       toast.error(error.message || 'Failed to add trusted friend');
@@ -203,12 +278,30 @@ const TrustedFriends: React.FC = () => {
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-xl font-semibold text-gray-800">Manage Trusted Friends</h2>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
-            >
-              Add Trusted Friend
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600"
+              >
+                Add Trusted Friend
+              </button>
+              <button
+                onClick={async () => {
+                  try {
+                    console.log('Testing search API...');
+                    const response = await api.get('/trusted-friends/search-users?search=a');
+                    console.log('Direct API test result:', response.data);
+                    toast.success(`Found ${response.data.data?.length || 0} users`);
+                  } catch (error) {
+                    console.error('Direct API test failed:', error);
+                    toast.error('API test failed');
+                  }
+                }}
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+              >
+                Test API
+              </button>
+            </div>
           </div>
 
           <div className="bg-white rounded-lg shadow-md p-6">
@@ -234,7 +327,7 @@ const TrustedFriends: React.FC = () => {
                       <div>
                         <h3 className="font-medium text-gray-900">{friend.friend?.name}</h3>
                         <p className="text-sm text-gray-500">ID: {friend.friend?.student_id}</p>
-                        <p className="text-sm text-green-600">Balance: ฿{friend.friend?.account_balance?.toFixed(2) || '0.00'}</p>
+                        <p className="text-sm text-green-600">Balance: ฿{parseFloat(friend.friend?.account_balance?.toString() || '0').toFixed(2)}</p>
                         <div className="flex items-center space-x-4 text-xs text-gray-400 mt-1">
                           <span className={`px-2 py-1 rounded ${
                             friend.permission_type === 'permanent' 
@@ -343,96 +436,94 @@ const TrustedFriends: React.FC = () => {
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Select Friend *</label>
-                  <select
-                    value={selectedUserId}
-                    onChange={(e) => handleUserSelect(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                    required
-                  >
-                    <option value="">-- Select a user --</option>
-                    {allUsers
-                      .filter(user => {
-                        if (user.account_balance <= 0) return false;
-                        if (!searchQuery) return true;
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          user.name.toLowerCase().includes(query) ||
-                          user.student_id.toLowerCase().includes(query) ||
-                          user.email.toLowerCase().includes(query)
-                        );
-                      })
-                      .sort((a, b) => {
-                        // Sort by student ID first, then by name
-                        if (a.student_id !== b.student_id) {
-                          return a.student_id.localeCompare(b.student_id);
-                        }
-                        return a.name.localeCompare(b.name);
-                      })
-                      .map((user) => (
-                        <option key={user.id} value={user.id}>
-                          {user.name} ({user.student_id}) - Balance: ฿{user.account_balance.toFixed(2)}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-
-                {selectedUserId && (
-                  <div className="bg-gray-50 p-3 rounded-md">
-                    <h4 className="text-sm font-medium text-gray-700 mb-2">Selected User Details:</h4>
-                    <div className="text-sm text-gray-600">
-                      <p><strong>Name:</strong> {addForm.friend_name}</p>
-                      <p><strong>Student ID:</strong> {addForm.friend_student_id}</p>
-                      <p><strong>Balance:</strong> ฿{allUsers.find(u => u.id.toString() === selectedUserId)?.account_balance.toFixed(2)}</p>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Search & Select Friend *</label>
+                  <div className="relative" ref={searchRef}>
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      onFocus={() => setShowSearchResults(true)}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2 pr-10"
+                      placeholder="Search by name, student ID, or email..."
+                    />
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
                     </div>
-                  </div>
-                )}
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Search & Filter</label>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                    placeholder="Search by name, student ID, or email to filter dropdown..."
-                  />
-                  
-                  {/* Search Results */}
-                  {searchResults.length > 0 && (
-                    <div className="mt-2 border rounded-md max-h-40 overflow-y-auto">
-                      {getFilteredSearchResults().map((user) => (
-                        <div
-                          key={user.id}
-                          onClick={() => {
-                            setAddForm({...addForm, friend_student_id: user.student_id, friend_name: user.name});
-                            setSearchQuery(`${user.name} (${user.student_id}) - Balance: ฿${user.account_balance.toFixed(2)}`);
-                            dispatch(clearSearchResults());
-                          }}
-                          className="p-2 hover:bg-gray-100 cursor-pointer flex items-center justify-between"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <img
-                              src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
-                              alt={user.name}
-                              className="w-8 h-8 rounded-full"
-                            />
-                            <div>
-                              <p className="text-sm font-medium">{user.name}</p>
-                              <p className="text-xs text-gray-500">{user.student_id}</p>
+                    
+                    {/* Search Results Dropdown */}
+                    {showSearchResults && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                        {searchLoading ? (
+                          <div className="p-4 text-center">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto"></div>
+                            <p className="text-sm text-gray-500 mt-2">Searching users...</p>
+                          </div>
+                        ) : filteredUsers.length > 0 ? (
+                          <>
+                            <div className="px-3 py-2 text-xs text-gray-500 bg-gray-50 border-b">
+                              {filteredUsers.length} user{filteredUsers.length !== 1 ? 's' : ''} found
+                              {searchQuery && <span className="font-medium"> for "{searchQuery}"</span>}
                             </div>
+                            {filteredUsers
+                              .sort((a, b) => {
+                                // Sort by student ID first, then by name
+                                if (a.student_id !== b.student_id) {
+                                  return a.student_id.localeCompare(b.student_id);
+                                }
+                                return a.name.localeCompare(b.name);
+                              })
+                              .map((user) => (
+                                <div
+                                  key={user.id}
+                                  onClick={() => handleUserSelect(user)}
+                                  className="p-3 hover:bg-gray-100 cursor-pointer flex items-center justify-between border-b last:border-b-0"
+                                >
+                                  <div className="flex items-center space-x-3">
+                                    <img
+                                      src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random`}
+                                      alt={user.name}
+                                      className="w-10 h-10 rounded-full"
+                                    />
+                                    <div>
+                                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                                      <p className="text-xs text-gray-500">ID: {user.student_id}</p>
+                                      <p className="text-xs text-gray-400">{user.email}</p>
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-sm font-medium text-green-600">฿{parseFloat(user.account_balance.toString()).toFixed(2)}</p>
+                                    <p className="text-xs text-gray-500">Balance</p>
+                                  </div>
+                                </div>
+                              ))}
+                          </>
+                        ) : (
+                          <div className="p-3 text-center text-gray-500 text-sm">
+                            {searchQuery ? `No users found matching "${searchQuery}"` : 'Start typing to search for users'}
                           </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-green-600">฿{user.account_balance.toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">Balance</p>
-                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Selected User Display */}
+                  {selectedUserId && (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <h4 className="text-sm font-medium text-blue-800 mb-2">✓ Selected Friend:</h4>
+                      <div className="flex items-center space-x-3">
+                        <img
+                          src={allUsers.find(u => u.id.toString() === selectedUserId)?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(addForm.friend_name)}&background=random`}
+                          alt={addForm.friend_name}
+                          className="w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{addForm.friend_name}</p>
+                          <p className="text-xs text-gray-600">ID: {addForm.friend_student_id}</p>
+                          <p className="text-xs text-green-600">Balance: ฿{parseFloat(allUsers.find(u => u.id.toString() === selectedUserId)?.account_balance.toString() || '0').toFixed(2)}</p>
                         </div>
-                      ))}
-                      {getFilteredSearchResults().length === 0 && searchResults.length > 0 && (
-                        <div className="p-2 text-center text-gray-500 text-sm">
-                          No users with account balance found
-                        </div>
-                      )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -498,6 +589,11 @@ const TrustedFriends: React.FC = () => {
                     });
                     setSelectedUserId('');
                     setSearchQuery('');
+                    setShowSearchResults(false);
+                    setSearchLoading(false);
+                    if (searchTimeoutRef.current) {
+                      clearTimeout(searchTimeoutRef.current);
+                    }
                     dispatch(clearSearchResults());
                   }}
                   className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"

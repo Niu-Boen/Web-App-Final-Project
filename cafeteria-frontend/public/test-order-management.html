@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Order Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Order Management Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Login as Staff</h3>
+        <button onclick="loginAsStaff()">Login as Staff</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Fetch All Orders</h3>
+        <button onclick="fetchAllOrders()">Fetch All Orders</button>
+        <div id="ordersResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Update Order Status</h3>
+        <input type="number" id="orderId" placeholder="Order ID" />
+        <select id="newStatus">
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="preparing">Preparing</option>
+            <option value="ready">Ready</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+        </select>
+        <button onclick="updateOrderStatus()">Update Status</button>
+        <div id="updateResult"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = '';
+
+        async function loginAsStaff() {
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    authToken = data.data.token;
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="success">✓ Logged in as staff successfully!</span>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="error">✗ Login failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function fetchAllOrders() {
+            if (!authToken) {
+                document.getElementById('ordersResult').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/orders/all`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('ordersResult').innerHTML = 
+                        `<span class="success">✓ Found ${data.data.length} orders</span>
+                         <br><br><strong>Sample Orders:</strong>
+                         <pre>${JSON.stringify(data.data.slice(0, 2).map(order => ({
+                             id: order.id,
+                             status: order.status,
+                             total_amount: order.total_amount,
+                             customer: order.user.name,
+                             items_count: order.order_items.length
+                         })), null, 2)}</pre>`;
+                } else {
+                    document.getElementById('ordersResult').innerHTML = 
+                        `<span class="error">✗ Failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('ordersResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function updateOrderStatus() {
+            if (!authToken) {
+                document.getElementById('updateResult').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+
+            const orderId = document.getElementById('orderId').value;
+            const newStatus = document.getElementById('newStatus').value;
+
+            if (!orderId) {
+                document.getElementById('updateResult').innerHTML = 
+                    '<span class="error">Please enter an order ID</span>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('updateResult').innerHTML = 
+                        `<span class="success">✓ Order ${orderId} status updated to ${newStatus}</span>`;
+                } else {
+                    document.getElementById('updateResult').innerHTML = 
+                        `<span class="error">✗ Failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('updateResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

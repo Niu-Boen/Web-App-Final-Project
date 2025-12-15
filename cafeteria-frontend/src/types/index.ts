@@ -3,9 +3,9 @@ export interface User {
   student_id: string;
   name: string;
   email: string;
-  role: 'admin' | 'staff' | 'student';
+  role: 'admin' | 'staff' | 'student' | 'finance';
   gender: 'male' | 'female';
-  account_balance: number;
+  account_balance: number | string;
   avatar?: string;
   last_login_at?: string;
   is_active: boolean;

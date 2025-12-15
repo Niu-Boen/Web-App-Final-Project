@@ -42,8 +42,16 @@ export const updateUserBalance = createAsyncThunk(
     amount: number;
     operation: 'add' | 'subtract' | 'set';
     reason: string;
-  }) => {
-    const response = await api.put(`/admin/users/${userId}/balance`, {
+  }, { getState }) => {
+    const state = getState() as any;
+    const userRole = state.auth.user?.role;
+    
+    // Use different endpoint based on user role
+    const endpoint = userRole === 'finance' 
+      ? `/finance/users/${userId}/balance`
+      : `/admin/users/${userId}/balance`;
+      
+    const response = await api.put(endpoint, {
       amount,
       operation,
       reason
@@ -71,7 +79,7 @@ export const updateUserRole = createAsyncThunk(
   'admin/updateUserRole',
   async ({ userId, role, reason }: {
     userId: number;
-    role: 'admin' | 'staff' | 'student';
+    role: 'admin' | 'staff' | 'student' | 'finance';
     reason?: string;
   }) => {
     const response = await api.put(`/admin/users/${userId}/role`, {

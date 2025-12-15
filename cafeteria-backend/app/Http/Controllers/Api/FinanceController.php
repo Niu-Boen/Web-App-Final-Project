@@ -13,19 +13,8 @@ use Carbon\Carbon;
 
 class FinanceController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-        $this->middleware(function ($request, $next) {
-            if (auth()->user()->email !== 'finance@apiu.edu') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Access denied. Finance manager only.'
-                ], 403);
-            }
-            return $next($request);
-        });
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
+    // Finance role checking is handled by route middleware
 
     // Get all users with balance information
     public function getAllUsers(Request $request)

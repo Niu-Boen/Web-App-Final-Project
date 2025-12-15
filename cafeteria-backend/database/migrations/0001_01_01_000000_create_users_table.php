@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'staff', 'student'])->default('student');
+            $table->enum('role', ['admin', 'staff', 'student', 'finance'])->default('student');
             $table->enum('gender', ['male', 'female']);
             $table->decimal('account_balance', 10, 2)->default(0);
             $table->string('nfc_token')->nullable();

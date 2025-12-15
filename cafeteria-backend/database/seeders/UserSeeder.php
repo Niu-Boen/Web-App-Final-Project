@@ -42,7 +42,7 @@ class UserSeeder extends Seeder
             'name' => 'Finance Manager',
             'email' => 'finance@apiu.edu',
             'password' => bcrypt('password'),
-            'role' => 'admin',
+            'role' => 'finance',
             'gender' => 'male',
             'account_balance' => 11000, // Initial balance for male finance manager
             'is_active' => true,

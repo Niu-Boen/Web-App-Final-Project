@@ -74,10 +74,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/search-users', [TrustedFriendController::class, 'searchUsers']);
     });
 
-    // Staff only routes - Menu management
+    // Staff only routes - Menu management and order management
     Route::middleware('role:staff')->group(function () {
-        Route::apiResource('menu', MenuController::class)->except(['index', 'show']);
+        Route::get('/orders/all', [OrderController::class, 'all']);
         Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus']);
+        Route::apiResource('menu', MenuController::class)->except(['index', 'show']);
     });
 
     // Admin only routes - User management
@@ -92,7 +93,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     // Finance manager only routes - Financial management
-    Route::prefix('finance')->group(function () {
+    Route::middleware('role:finance')->prefix('finance')->group(function () {
         Route::get('/users', [FinanceController::class, 'getAllUsers']);
         Route::put('/users/{userId}/balance', [FinanceController::class, 'updateUserBalance']);
         Route::get('/financial-report', [FinanceController::class, 'getFinancialReport']);

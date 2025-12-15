@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Search API</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>Test Search API</h1>
+    <button onclick="testSearch()">Test Search API</button>
+    <div id="result"></div>
+
+    <script>
+        async function testSearch() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // First get a token by logging in
+                const loginResponse = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@apiu.edu',
+                        password: 'password'
+                    })
+                });
+                
+                const loginData = await loginResponse.json();
+                console.log('Login response:', loginData);
+                
+                if (!loginData.success) {
+                    resultDiv.innerHTML = 'Login failed: ' + loginData.message;
+                    return;
+                }
+                
+                const token = loginData.data.token;
+                
+                // Now test the search API
+                const searchResponse = await fetch('/api/trusted-friends/search-users?search=a', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('Search response status:', searchResponse.status);
+                const searchData = await searchResponse.json();
+                console.log('Search response data:', searchData);
+                
+                resultDiv.innerHTML = `
+                    <h3>Search Results:</h3>
+                    <p>Status: ${searchResponse.status}</p>
+                    <p>Success: ${searchData.success}</p>
+                    <p>Users found: ${searchData.data ? searchData.data.length : 0}</p>
+                    <pre>${JSON.stringify(searchData, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

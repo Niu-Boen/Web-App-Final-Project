@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证错误修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .fix {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .fix-icon {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 验证错误修复测试</h1>
+    
+    <div class="test-section error">
+        <h2>🚨 之前的问题</h2>
+        <p><strong>错误信息:</strong></p>
+        <code>验证错误: The image field must be an image., The image field must be a file of type: jpeg, png, jpg, gif.</code>
+        
+        <p><strong>问题原因:</strong></p>
+        <p>后端期望接收图片文件，但前端发送的是图片路径字符串</p>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ 修复内容</h2>
+        
+        <div class="fix">
+            <div class="fix-icon">1</div>
+            <div>
+                <h3>修改后端验证规则</h3>
+                <p>将 <code>image</code> 字段验证从文件类型改为字符串类型</p>
+                <ul>
+                    <li><strong>修复前:</strong> <code>'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'</code></li>
+                    <li><strong>修复后:</strong> <code>'image' => 'nullable|string'</code></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="fix">
+            <div class="fix-icon">2</div>
+            <div>
+                <h3>移除文件处理逻辑</h3>
+                <p>移除了 <code>hasFile('image')</code> 的文件处理逻辑</p>
+                <ul>
+                    <li>不再处理文件上传</li>
+                    <li>直接使用图片路径字符串</li>
+                    <li>图片通过独立接口上传</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="fix">
+            <div class="fix-icon">3</div>
+            <div>
+                <h3>同时修复创建和更新</h3>
+                <p>修复了 <code>store</code> 和 <code>update</code> 方法</p>
+                <ul>
+                    <li>创建菜单项时接受图片路径</li>
+                    <li>更新菜单项时接受图片路径</li>
+                    <li>保持向后兼容性</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="step">
+            <h3>步骤 1: 登录员工账户</h3>
+            <p>使用 <code>staff@apiu.edu / password</code> 登录</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 测试创建菜单项</h3>
+            <ul>
+                <li>✅ 进入菜单管理页面</li>
+                <li>✅ 点击 "Add Menu Item"</li>
+                <li>✅ 点击 "上传图片" 按钮</li>
+                <li>✅ 上传一个图片并选择</li>
+                <li>✅ 填写菜单项信息（名称、类别、价格等）</li>
+                <li>✅ 点击 "创建" 按钮</li>
+                <li>✅ 验证不再显示图片验证错误</li>
+                <li>✅ 验证显示成功创建消息</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 测试更新菜单项</h3>
+            <ul>
+                <li>✅ 点击编辑现有菜单项</li>
+                <li>✅ 修改图片路径或上传新图片</li>
+                <li>✅ 修改其他信息</li>
+                <li>✅ 点击 "更新" 按钮</li>
+                <li>✅ 验证不再显示图片验证错误</li>
+                <li>✅ 验证显示成功更新消息</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 4: 测试验证错误</h3>
+            <ul>
+                <li>✅ 尝试创建菜单项但不填写必填字段</li>
+                <li>✅ 验证显示正确的验证错误（不包括图片错误）</li>
+                <li>✅ 验证错误信息为中文</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h2>📋 技术细节</h2>
+        
+        <div class="step">
+            <h3>新的工作流程</h3>
+            <ol>
+                <li>用户通过图片上传弹窗上传图片到服务器</li>
+                <li>服务器返回图片路径（如：menu-items/image123.jpg）</li>
+                <li>用户选择图片，路径自动填充到表单</li>
+                <li>创建/更新菜单项时，发送图片路径字符串</li>
+                <li>后端直接保存图片路径，不处理文件上传</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h3>验证规则变化</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr style="background: #f8f9fa;">
+                    <th style="border: 1px solid #ddd; padding: 8px;">字段</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">修复前</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">修复后</th>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">image (store)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">nullable|image|mimes:jpeg,png,jpg,gif|max:2048</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">nullable|string</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">image (update)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">nullable|image|mimes:jpeg,png,jpg,gif|max:2048</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">nullable|string</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>⚠️ 预期结果</h2>
+        <ul>
+            <li><strong>创建菜单项</strong>: 不再显示图片文件类型验证错误</li>
+            <li><strong>更新菜单项</strong>: 可以正常更新图片路径</li>
+            <li><strong>图片显示</strong>: 菜单项的图片正常显示</li>
+            <li><strong>验证错误</strong>: 只显示真正的验证错误（必填字段等）</li>
+            <li><strong>成功消息</strong>: 显示中文成功提示</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速链接</h2>
+        <p><a href="http://localhost:3000" target="_blank">打开应用程序</a></p>
+        <p><a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+        <p><a href="http://localhost:3000/menu-management" target="_blank">菜单管理页面</a></p>
+    </div>
+
+    <script>
+        console.log('验证错误修复测试页面已加载');
+        console.log('后端服务器已重启，验证规则已更新');
+        console.log('请测试菜单项的创建和更新功能');
+    </script>
+</body>
+</html>

@@ -16,12 +16,13 @@ const Statistics: React.FC = () => {
   const [loadingConsumption, setLoadingConsumption] = useState(false);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
-      dispatch(fetchLikesStatistics());
-      fetchConsumptionOverview();
-    }
     if (user) {
+      // All users can see likes statistics
+      dispatch(fetchLikesStatistics());
       fetchUserConsumptionStats();
+    }
+    if (user?.role === 'admin') {
+      fetchConsumptionOverview();
     }
   }, [dispatch, user]);
 
@@ -42,7 +43,7 @@ const Statistics: React.FC = () => {
     if (!user) return;
     
     try {
-      const response = await api.get(`/admin/users/${user.id}/consumption-stats`);
+      const response = await api.get('/statistics/consumption');
       setUserConsumptionStats(response.data.data);
     } catch (error) {
       console.error('Failed to fetch user consumption stats:', error);
@@ -95,7 +96,7 @@ const Statistics: React.FC = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                  <p className="text-2xl font-semibold text-gray-900">{userConsumptionStats.total_orders}</p>
+                  <p className="text-2xl font-semibold text-gray-900">{userConsumptionStats.summary?.total_orders || 0}</p>
                 </div>
               </div>
             </div>
@@ -107,7 +108,7 @@ const Statistics: React.FC = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Total Spent</p>
-                  <p className="text-2xl font-semibold text-gray-900">฿{userConsumptionStats.total_spent.toFixed(2)}</p>
+                  <p className="text-2xl font-semibold text-gray-900">฿{(userConsumptionStats.summary?.total_spent || 0).toFixed(2)}</p>
                 </div>
               </div>
             </div>
@@ -119,14 +120,14 @@ const Statistics: React.FC = () => {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Liked Items</p>
-                  <p className="text-2xl font-semibold text-gray-900">{userConsumptionStats.liked_items.length}</p>
+                  <p className="text-2xl font-semibold text-gray-900">{userConsumptionStats.liked_items?.length || 0}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Personal Spending by Category */}
-          {userConsumptionStats.spending_by_category.length > 0 && (
+          {userConsumptionStats.spending_by_category?.length > 0 && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h3 className="text-lg font-semibold mb-4">Your Spending by Category</h3>
               <ResponsiveContainer width="100%" height={300}>
@@ -152,11 +153,11 @@ const Statistics: React.FC = () => {
           )}
 
           {/* Most Ordered Items */}
-          {userConsumptionStats.most_ordered.length > 0 && (
+          {userConsumptionStats.most_ordered?.length > 0 && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-8">
               <h3 className="text-lg font-semibold mb-4">Your Most Ordered Items</h3>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={userConsumptionStats.most_ordered.slice(0, 5)}>
+                <BarChart data={userConsumptionStats.most_ordered?.slice(0, 5) || []}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="item_name" />
                   <YAxis />
@@ -175,10 +176,10 @@ const Statistics: React.FC = () => {
         )}
       </div>
 
-      {/* Admin Statistics */}
-      {user?.role === 'admin' && statistics && (
+      {/* Likes Statistics - Available to all users */}
+      {statistics && (
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">System-wide Statistics</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Menu Item Popularity</h2>
           
           {/* Most Liked Items */}
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">

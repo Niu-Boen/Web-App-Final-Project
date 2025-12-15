@@ -187,6 +187,14 @@ const Orders = () => {
                         </p>
                       </div>
                     )}
+                    
+                    {order.pickup_person_name && order.pickup_person_id && (
+                      <div className="mt-2">
+                        <p className="text-sm text-blue-600">
+                          <strong>Picked up by:</strong> {order.pickup_person_name} (ID: {order.pickup_person_id})
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

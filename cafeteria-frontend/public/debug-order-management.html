@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Order Management</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { margin: 5px; padding: 10px; }
+        pre { background: #f5f5f5; padding: 10px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Debug Order Management</h1>
+    
+    <div class="section">
+        <h3>Current State</h3>
+        <div id="currentState"></div>
+        <button onclick="checkCurrentState()">Check Current State</button>
+    </div>
+
+    <div class="section">
+        <h3>1. Login as Staff</h3>
+        <button onclick="loginAsStaff()">Login as Staff</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="section">
+        <h3>2. Test Orders API</h3>
+        <button onclick="testOrdersAPI()">Test Orders API</button>
+        <div id="ordersResult"></div>
+    </div>
+
+    <div class="section">
+        <h3>3. Access React App</h3>
+        <button onclick="accessReactApp()">Go to Order Management</button>
+        <div id="reactResult"></div>
+    </div>
+
+    <script>
+        function checkCurrentState() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            let userObj = null;
+            try {
+                userObj = user ? JSON.parse(user) : null;
+            } catch (e) {
+                console.error('Error parsing user:', e);
+            }
+
+            document.getElementById('currentState').innerHTML = `
+                <div class="info">
+                    <strong>Token:</strong> ${token ? 'Present (' + token.substring(0, 20) + '...)' : 'Not found'}<br>
+                    <strong>User:</strong> ${userObj ? userObj.name + ' (' + userObj.role + ')' : 'Not found'}<br>
+                    <strong>User Role:</strong> ${userObj?.role || 'N/A'}
+                </div>
+            `;
+        }
+
+        async function loginAsStaff() {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="success">✓ Logged in as ${data.data.user.name} (${data.data.user.role})</span>
+                         <pre>${JSON.stringify(data.data.user, null, 2)}</pre>`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="error">✗ Login failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testOrdersAPI() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('ordersResult').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+
+            try {
+                console.log('Testing orders API with token:', token.substring(0, 20) + '...');
+                
+                const response = await fetch('/api/orders/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    document.getElementById('ordersResult').innerHTML = 
+                        `<span class="success">✓ Found ${data.data.length} orders</span>
+                         <pre>${JSON.stringify(data.data.slice(0, 1), null, 2)}</pre>`;
+                } else {
+                    document.getElementById('ordersResult').innerHTML = 
+                        `<span class="error">✗ API failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                console.error('Orders API error:', error);
+                document.getElementById('ordersResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        function accessReactApp() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('reactResult').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+
+            document.getElementById('reactResult').innerHTML = 
+                '<span class="info">Opening React app... Check browser console for errors.</span>';
+            
+            // Open in same tab to preserve localStorage
+            window.location.href = '/order-management';
+        }
+
+        // Check state on load
+        window.onload = function() {
+            checkCurrentState();
+        };
+    </script>
+</body>
+</html>

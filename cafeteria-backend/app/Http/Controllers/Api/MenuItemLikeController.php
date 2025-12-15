@@ -10,10 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class MenuItemLikeController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
 
     // Toggle like for a menu item
     public function toggle(Request $request, $menuItemId)

@@ -1,22 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from '../store/store';
-import { fetchDashboardStats, fetchUsers, updateUserBalance, updateUserStatus, updateUserRole, resetUserPassword, updateUserInfo } from '../store/slices/adminSlice';
+import { fetchDashboardStats, fetchUsers, updateUserStatus, updateUserRole, resetUserPassword, updateUserInfo } from '../store/slices/adminSlice';
 import { User } from '../types';
 import { toast } from 'react-toastify';
 
 const AdminDashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { dashboardStats, dashboardLoading, users, usersLoading } = useSelector((state: RootState) => state.admin);
+  const { user } = useSelector((state: RootState) => state.auth);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [balanceModal, setBalanceModal] = useState(false);
   const [passwordModal, setPasswordModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
-  const [balanceForm, setBalanceForm] = useState({
-    amount: '',
-    operation: 'add' as 'add' | 'subtract' | 'set',
-    reason: ''
-  });
+  const [passwordResetLoading, setPasswordResetLoading] = useState(false);
+  const [userInfoUpdateLoading, setUserInfoUpdateLoading] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     newPassword: '',
     confirmPassword: '',
@@ -30,33 +27,13 @@ const AdminDashboard: React.FC = () => {
   });
 
   useEffect(() => {
-    dispatch(fetchDashboardStats());
-    dispatch(fetchUsers());
-  }, [dispatch]);
-
-  const handleBalanceUpdate = async () => {
-    if (!selectedUser || !balanceForm.amount || !balanceForm.reason) {
-      toast.error('Please fill all required fields');
-      return;
+    if (user?.role === 'admin') {
+      dispatch(fetchDashboardStats());
+      dispatch(fetchUsers());
     }
+  }, [dispatch, user]);
 
-    try {
-      await dispatch(updateUserBalance({
-        userId: selectedUser.id,
-        amount: parseFloat(balanceForm.amount),
-        operation: balanceForm.operation,
-        reason: balanceForm.reason
-      })).unwrap();
-      
-      toast.success('Balance updated successfully');
-      setBalanceModal(false);
-      setBalanceForm({ amount: '', operation: 'add', reason: '' });
-      setSelectedUser(null);
-      dispatch(fetchUsers()); // Refresh users list
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to update balance');
-    }
-  };
+
 
   const handleStatusToggle = async (user: User) => {
     try {
@@ -72,7 +49,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleRoleChange = async (user: User, newRole: 'admin' | 'staff' | 'student') => {
+  const handleRoleChange = async (user: User, newRole: 'admin' | 'staff' | 'student' | 'finance') => {
     if (user.role === newRole) return;
 
     try {
@@ -104,6 +81,7 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
+    setPasswordResetLoading(true);
     try {
       await dispatch(resetUserPassword({
         userId: selectedUser.id,
@@ -117,6 +95,8 @@ const AdminDashboard: React.FC = () => {
       setSelectedUser(null);
     } catch (error: any) {
       toast.error(error.message || 'Failed to reset password');
+    } finally {
+      setPasswordResetLoading(false);
     }
   };
 
@@ -126,6 +106,7 @@ const AdminDashboard: React.FC = () => {
       return;
     }
 
+    setUserInfoUpdateLoading(true);
     try {
       await dispatch(updateUserInfo({
         userId: selectedUser.id,
@@ -142,8 +123,21 @@ const AdminDashboard: React.FC = () => {
       dispatch(fetchUsers()); // Refresh users list
     } catch (error: any) {
       toast.error(error.message || 'Failed to update user information');
+    } finally {
+      setUserInfoUpdateLoading(false);
     }
   };
+
+  if (!user || user.role !== 'admin') {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (dashboardLoading) {
     return (
@@ -158,7 +152,7 @@ const AdminDashboard: React.FC = () => {
       <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Dashboard</h1>
 
       {/* Statistics Cards */}
-      {dashboardStats && (
+      {dashboardStats && dashboardStats.stats && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center">
@@ -169,7 +163,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Users</p>
-                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats.total_users}</p>
+                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats?.total_users || 0}</p>
               </div>
             </div>
           </div>
@@ -183,7 +177,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Users</p>
-                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats.active_users}</p>
+                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats?.active_users || 0}</p>
               </div>
             </div>
           </div>
@@ -197,7 +191,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Orders</p>
-                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats.total_orders}</p>
+                <p className="text-2xl font-semibold text-gray-900">{dashboardStats.stats?.total_orders || 0}</p>
               </div>
             </div>
           </div>
@@ -211,7 +205,7 @@ const AdminDashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-semibold text-gray-900">฿{dashboardStats.stats.total_revenue.toFixed(2)}</p>
+                <p className="text-2xl font-semibold text-gray-900">฿{(dashboardStats.stats?.total_revenue || 0).toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -239,7 +233,7 @@ const AdminDashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
+                {users && users.length > 0 ? users.map((user) => (
                   <tr key={user.id}>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -260,16 +254,21 @@ const AdminDashboard: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <select
                         value={user.role}
-                        onChange={(e) => handleRoleChange(user, e.target.value as 'admin' | 'staff' | 'student')}
+                        onChange={(e) => handleRoleChange(user, e.target.value as 'admin' | 'staff' | 'student' | 'finance')}
                         className="text-sm border rounded px-2 py-1"
                       >
                         <option value="student">Student</option>
                         <option value="staff">Staff</option>
                         <option value="admin">Admin</option>
+                        <option value="finance">Finance</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">฿{user.account_balance.toFixed(2)}</div>
+                      <div className="text-sm text-gray-900">
+                        ฿{(typeof user.account_balance === 'number' 
+                          ? user.account_balance.toFixed(2) 
+                          : parseFloat(user.account_balance || '0').toFixed(2))}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -319,7 +318,13 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                      No users found
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -341,7 +346,12 @@ const AdminDashboard: React.FC = () => {
                     type="password"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={passwordResetLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      passwordResetLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     placeholder="Enter new password (min 6 characters)"
                   />
                 </div>
@@ -351,7 +361,12 @@ const AdminDashboard: React.FC = () => {
                     type="password"
                     value={passwordForm.confirmPassword}
                     onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={passwordResetLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      passwordResetLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     placeholder="Confirm new password"
                   />
                 </div>
@@ -360,7 +375,12 @@ const AdminDashboard: React.FC = () => {
                   <textarea
                     value={passwordForm.reason}
                     onChange={(e) => setPasswordForm({...passwordForm, reason: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={passwordResetLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      passwordResetLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     rows={3}
                     placeholder="Reason for password reset..."
                   />
@@ -373,15 +393,35 @@ const AdminDashboard: React.FC = () => {
                     setPasswordForm({ newPassword: '', confirmPassword: '', reason: '' });
                     setSelectedUser(null);
                   }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  disabled={passwordResetLoading}
+                  className={`px-4 py-2 rounded-md ${
+                    passwordResetLoading 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handlePasswordReset}
-                  className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  disabled={passwordResetLoading}
+                  className={`px-4 py-2 text-white rounded-md flex items-center justify-center ${
+                    passwordResetLoading 
+                      ? 'bg-red-400 cursor-not-allowed' 
+                      : 'bg-red-500 hover:bg-red-600'
+                  }`}
                 >
-                  Reset Password
+                  {passwordResetLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Resetting...
+                    </>
+                  ) : (
+                    'Reset Password'
+                  )}
                 </button>
               </div>
             </div>
@@ -404,7 +444,12 @@ const AdminDashboard: React.FC = () => {
                     type="text"
                     value={editForm.student_id}
                     onChange={(e) => setEditForm({...editForm, student_id: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={userInfoUpdateLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      userInfoUpdateLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     placeholder="Student ID"
                   />
                 </div>
@@ -414,7 +459,12 @@ const AdminDashboard: React.FC = () => {
                     type="text"
                     value={editForm.name}
                     onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={userInfoUpdateLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      userInfoUpdateLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     placeholder="Full name"
                   />
                 </div>
@@ -424,7 +474,12 @@ const AdminDashboard: React.FC = () => {
                     type="email"
                     value={editForm.email}
                     onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={userInfoUpdateLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      userInfoUpdateLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     placeholder="Email address"
                   />
                 </div>
@@ -433,7 +488,12 @@ const AdminDashboard: React.FC = () => {
                   <textarea
                     value={editForm.reason}
                     onChange={(e) => setEditForm({...editForm, reason: e.target.value})}
-                    className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                    disabled={userInfoUpdateLoading}
+                    className={`mt-1 block w-full border rounded-md px-3 py-2 ${
+                      userInfoUpdateLoading 
+                        ? 'border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed' 
+                        : 'border-gray-300 bg-white text-gray-900'
+                    }`}
                     rows={3}
                     placeholder="Reason for information update..."
                     required
@@ -447,15 +507,35 @@ const AdminDashboard: React.FC = () => {
                     setEditForm({ student_id: '', name: '', email: '', reason: '' });
                     setSelectedUser(null);
                   }}
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                  disabled={userInfoUpdateLoading}
+                  className={`px-4 py-2 rounded-md ${
+                    userInfoUpdateLoading 
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                      : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleUserInfoUpdate}
-                  className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                  disabled={userInfoUpdateLoading}
+                  className={`px-4 py-2 text-white rounded-md flex items-center justify-center ${
+                    userInfoUpdateLoading 
+                      ? 'bg-blue-400 cursor-not-allowed' 
+                      : 'bg-blue-500 hover:bg-blue-600'
+                  }`}
                 >
-                  Update Information
+                  {userInfoUpdateLoading ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Updating...
+                    </>
+                  ) : (
+                    'Update Information'
+                  )}
                 </button>
               </div>
             </div>

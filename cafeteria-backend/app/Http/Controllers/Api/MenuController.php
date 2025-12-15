@@ -10,12 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MenuController extends Controller
 {
-    public function __construct()
-    {
-        // Apply staff middleware only to management methods
-        $this->middleware('auth:sanctum')->only(['store', 'update', 'destroy']);
-        $this->middleware('role:staff')->only(['store', 'update', 'destroy']);
-    }
+    // Middleware handled in routes
     public function categories()
     {
         $categories = Category::with(['children', 'menuItems' => function($query) {
@@ -97,7 +92,7 @@ class MenuController extends Controller
             'allergens' => 'nullable|array',
             'preparation_time' => 'nullable|integer|min:1',
             'stock_quantity' => 'nullable|integer|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|string', // 改为接受字符串路径
         ]);
 
         if ($validator->fails()) {
@@ -110,9 +105,8 @@ class MenuController extends Controller
 
         $data = $request->all();
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('menu-items', 'public');
-        }
+        // 图片路径直接使用，不需要文件处理
+        // 图片已经通过独立的上传接口处理
 
         $menuItem = MenuItem::create($data);
 
@@ -145,7 +139,7 @@ class MenuController extends Controller
             'stock_quantity' => 'nullable|integer|min:0',
             'is_available' => 'sometimes|boolean',
             'is_featured' => 'sometimes|boolean',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|string', // 改为接受字符串路径
         ]);
 
         if ($validator->fails()) {
@@ -158,9 +152,8 @@ class MenuController extends Controller
 
         $data = $request->all();
 
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('menu-items', 'public');
-        }
+        // 图片路径直接使用，不需要文件处理
+        // 图片已经通过独立的上传接口处理
 
         $menuItem->update($data);
 

@@ -94,9 +94,13 @@ class OrderController extends Controller
             $dayOfWeek = $currentTime->format('l');
             $isPeakHour = in_array($currentTime->hour, [11, 12, 13, 17, 18, 19]); // Peak hours: 11am-1pm, 5pm-7pm
             
+            // Generate a temporary order number first
+            $tempOrderNumber = 'ORD-' . date('Ymd') . '-' . uniqid();
+            
             // Create order
             $order = Order::create([
                 'user_id' => $user->id,
+                'order_number' => $tempOrderNumber,
                 'total_amount' => $totalAmount,
                 'status' => 'pending',
                 'payment_status' => 'pending',
@@ -113,7 +117,7 @@ class OrderController extends Controller
                 'payment_method' => 'balance',
             ]);
 
-            // Generate order number
+            // Update with proper order number
             $order->update([
                 'order_number' => 'ORD-' . date('Ymd') . '-' . str_pad($order->id, 4, '0', STR_PAD_LEFT)
             ]);
@@ -225,6 +229,38 @@ class OrderController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to cancel order'
+            ], 500);
+        }
+    }
+
+    public function all(Request $request)
+    {
+        // Only allow staff to access all orders
+        if ($request->user()->role !== 'staff') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        try {
+            $query = Order::with(['orderItems.menuItem', 'user'])
+                ->orderBy('created_at', 'desc');
+
+            if ($request->has('status') && $request->status !== 'all') {
+                $query->where('status', $request->status);
+            }
+
+            $orders = $query->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $orders
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching orders: ' . $e->getMessage()
             ], 500);
         }
     }

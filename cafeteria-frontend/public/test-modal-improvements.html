@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹窗改进功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .improvement {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .improvement-icon {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 弹窗改进功能测试</h1>
+    
+    <div class="test-section success">
+        <h2>✅ 改进内容</h2>
+        
+        <div class="improvement">
+            <div class="improvement-icon">1</div>
+            <div>
+                <h3>修复验证错误显示</h3>
+                <p>改善了错误处理，显示详细的验证错误信息</p>
+                <ul>
+                    <li>中文错误提示</li>
+                    <li>详细的验证错误信息</li>
+                    <li>更好的错误格式化</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="improvement">
+            <div class="improvement-icon">2</div>
+            <div>
+                <h3>允许点击空白区域关闭</h3>
+                <p>现在可以点击弹窗外的空白区域关闭弹窗</p>
+                <ul>
+                    <li>点击背景关闭弹窗</li>
+                    <li>保持内容区域点击不关闭</li>
+                    <li>更符合用户习惯</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="improvement">
+            <div class="improvement-icon">3</div>
+            <div>
+                <h3>分离保存和关闭按钮</h3>
+                <p>将"保存并关闭"分成两个独立的按钮</p>
+                <ul>
+                    <li>"保存"按钮：只保存，不关闭弹窗</li>
+                    <li>"关闭"按钮：关闭弹窗</li>
+                    <li>更灵活的操作方式</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        
+        <div class="step">
+            <h3>步骤 1: 登录员工账户</h3>
+            <p>使用 <code>staff@apiu.edu / password</code> 登录</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 测试验证错误显示</h3>
+            <ul>
+                <li>✅ 进入菜单管理页面</li>
+                <li>✅ 点击 "Add Menu Item"</li>
+                <li>✅ 不填写任何信息，直接点击 "创建"</li>
+                <li>✅ 验证显示中文错误提示</li>
+                <li>✅ 只填写部分信息，测试不同的验证错误</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 测试弹窗关闭功能</h3>
+            <ul>
+                <li>✅ 点击弹窗外的空白区域</li>
+                <li>✅ 验证弹窗正常关闭</li>
+                <li>✅ 重新打开弹窗，点击弹窗内容区域</li>
+                <li>✅ 验证弹窗不会关闭</li>
+                <li>✅ 点击 "关闭" 按钮</li>
+                <li>✅ 验证弹窗正常关闭</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 4: 测试分离的按钮功能</h3>
+            <ul>
+                <li>✅ 填写完整的菜单项信息</li>
+                <li>✅ 点击 "创建" 按钮</li>
+                <li>✅ 验证显示成功提示</li>
+                <li>✅ 验证弹窗保持打开状态</li>
+                <li>✅ 验证菜单列表已更新</li>
+                <li>✅ 点击 "关闭" 按钮关闭弹窗</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 5: 测试编辑功能</h3>
+            <ul>
+                <li>✅ 点击编辑现有菜单项</li>
+                <li>✅ 修改一些信息</li>
+                <li>✅ 点击 "更新" 按钮</li>
+                <li>✅ 验证显示成功提示</li>
+                <li>✅ 验证弹窗保持打开状态</li>
+                <li>✅ 点击 "关闭" 按钮关闭弹窗</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h2>📋 新的用户体验</h2>
+        
+        <div class="step">
+            <h3>错误处理改进</h3>
+            <ul>
+                <li>中文错误提示，更易理解</li>
+                <li>详细的验证错误信息</li>
+                <li>控制台错误日志，便于调试</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>弹窗交互改进</h3>
+            <ul>
+                <li>点击空白区域关闭，符合用户习惯</li>
+                <li>点击内容区域不关闭，避免误操作</li>
+                <li>ESC键关闭（浏览器默认行为）</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>按钮功能改进</h3>
+            <ul>
+                <li>保存后不自动关闭，可以继续编辑</li>
+                <li>独立的关闭按钮，明确的操作意图</li>
+                <li>保存成功后列表自动刷新</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>⚠️ 预期行为</h2>
+        <ul>
+            <li><strong>错误提示</strong>: 显示中文错误信息，格式清晰</li>
+            <li><strong>弹窗关闭</strong>: 可以通过空白区域、关闭按钮关闭</li>
+            <li><strong>保存操作</strong>: 保存成功后弹窗保持打开，列表更新</li>
+            <li><strong>关闭操作</strong>: 独立的关闭按钮，清除表单数据</li>
+            <li><strong>编辑模式</strong>: 更新按钮只保存，不关闭弹窗</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速链接</h2>
+        <p><a href="http://localhost:3000" target="_blank">打开应用程序</a></p>
+        <p><a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+        <p><a href="http://localhost:3000/menu-management" target="_blank">菜单管理页面</a></p>
+    </div>
+
+    <script>
+        console.log('弹窗改进功能测试页面已加载');
+        console.log('请按照上述步骤测试弹窗的改进功能');
+    </script>
+</body>
+</html>

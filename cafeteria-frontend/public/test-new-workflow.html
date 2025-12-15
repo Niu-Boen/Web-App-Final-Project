@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新图片上传工作流程测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        .workflow-step {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .step-number {
+            background: #007bff;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 新图片上传工作流程</h1>
+    
+    <div class="test-section success">
+        <h2>✅ 新方案优势</h2>
+        <ul>
+            <li><strong>避免弹窗复杂性</strong> - 不再需要在弹窗中处理文件上传</li>
+            <li><strong>批量上传支持</strong> - 可以一次上传多个图片</li>
+            <li><strong>图片管理</strong> - 专门的页面管理已上传的图片</li>
+            <li><strong>路径复制</strong> - 一键复制图片路径，方便使用</li>
+            <li><strong>预览功能</strong> - 实时预览上传的图片</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 新工作流程</h2>
+        
+        <div class="workflow-step">
+            <div class="step-number">1</div>
+            <div>
+                <h3>访问图片上传页面</h3>
+                <p>点击导航栏中的 "Image Upload" 或菜单管理页面的 "Upload Images" 按钮</p>
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="step-number">2</div>
+            <div>
+                <h3>上传图片</h3>
+                <p>在图片上传页面选择并上传一个或多个图片文件</p>
+                <ul>
+                    <li>支持 JPG, PNG, GIF 格式</li>
+                    <li>单个文件最大 5MB</li>
+                    <li>支持批量上传</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="step-number">3</div>
+            <div>
+                <h3>复制图片路径</h3>
+                <p>上传成功后，点击图片下方的 "复制路径" 按钮</p>
+                <p>路径格式: <code>menu-items/filename.jpg</code></p>
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="step-number">4</div>
+            <div>
+                <h3>创建菜单项</h3>
+                <p>返回菜单管理页面，点击 "Add Menu Item"</p>
+                <p>将复制的图片路径粘贴到 "图片路径" 输入框中</p>
+            </div>
+        </div>
+        
+        <div class="workflow-step">
+            <div class="step-number">5</div>
+            <div>
+                <h3>填写信息并保存</h3>
+                <p>填写菜单项的其他信息，然后点击 "创建并关闭" 保存</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        <div class="step">
+            <h3>步骤 1: 登录员工账户</h3>
+            <p>使用 <code>staff@apiu.edu / password</code> 登录</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 测试图片上传页面</h3>
+            <ul>
+                <li>✅ 点击导航栏的 "Image Upload"</li>
+                <li>✅ 上传一个或多个图片</li>
+                <li>✅ 验证图片显示在列表中</li>
+                <li>✅ 点击 "复制路径" 按钮</li>
+                <li>✅ 验证路径已复制到剪贴板</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 测试菜单项创建</h3>
+            <ul>
+                <li>✅ 返回菜单管理页面</li>
+                <li>✅ 点击 "Add Menu Item"</li>
+                <li>✅ 将复制的路径粘贴到图片路径输入框</li>
+                <li>✅ 验证图片预览显示</li>
+                <li>✅ 填写其他信息并保存</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section info">
+        <h2>📋 页面功能</h2>
+        <div class="step">
+            <h3>图片上传页面功能</h3>
+            <ul>
+                <li>拖拽或点击上传图片</li>
+                <li>批量上传支持</li>
+                <li>实时预览上传的图片</li>
+                <li>一键复制图片路径</li>
+                <li>从列表中移除图片</li>
+                <li>显示上传时间和文件名</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>菜单管理页面更新</h3>
+            <ul>
+                <li>添加了 "Upload Images" 按钮</li>
+                <li>图片上传改为文本输入框</li>
+                <li>实时图片预览</li>
+                <li>清晰的使用说明</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>⚠️ 注意事项</h2>
+        <ul>
+            <li><strong>路径格式</strong>: 确保使用正确的路径格式 (menu-items/filename.jpg)</li>
+            <li><strong>图片预览</strong>: 如果路径错误，预览图片不会显示</li>
+            <li><strong>文件管理</strong>: 从列表中移除图片不会删除服务器上的文件</li>
+            <li><strong>权限</strong>: 只有 staff 角色可以访问图片上传页面</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速链接</h2>
+        <p><a href="http://localhost:3000" target="_blank">打开应用程序</a></p>
+        <p><a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+        <p><a href="http://localhost:3000/image-upload" target="_blank">图片上传页面</a></p>
+        <p><a href="http://localhost:3000/menu-management" target="_blank">菜单管理页面</a></p>
+    </div>
+
+    <script>
+        console.log('新图片上传工作流程测试页面已加载');
+        console.log('请按照上述步骤测试新的工作流程');
+    </script>
+</body>
+</html>

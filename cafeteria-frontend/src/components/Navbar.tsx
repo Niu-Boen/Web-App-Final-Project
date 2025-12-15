@@ -46,15 +46,25 @@ const Navbar = () => {
                 <Link to="/statistics" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                   Statistics
                 </Link>
-                {user.email === 'finance@apiu.edu' && (
+                {user.role === 'admin' && (
+                  <Link to="/dashboard" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                    Admin Dashboard
+                  </Link>
+                )}
+                {user.role === 'finance' && (
                   <Link to="/finance-management" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
                     Finance Management
                   </Link>
                 )}
-                {(user.role === 'admin' || user.role === 'staff') && (
-                  <Link to="/menu-management" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
-                    Menu Management
-                  </Link>
+                {user.role === 'staff' && (
+                  <>
+                    <Link to="/menu-management" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                      Menu Management
+                    </Link>
+                    <Link to="/order-management" className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium">
+                      Order Management
+                    </Link>
+                  </>
                 )}
                 <Link to="/cart" className="relative text-gray-700 hover:text-primary-600 p-2">
                   <ShoppingCart size={20} />
@@ -129,15 +139,25 @@ const Navbar = () => {
                   <Link to="/statistics" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
                     Statistics
                   </Link>
-                  {user.email === 'finance@apiu.edu' && (
+                  {user.role === 'admin' && (
+                    <Link to="/dashboard" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
+                      Admin Dashboard
+                    </Link>
+                  )}
+                  {user.role === 'finance' && (
                     <Link to="/finance-management" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
                       Finance Management
                     </Link>
                   )}
-                  {(user.role === 'admin' || user.role === 'staff') && (
-                    <Link to="/menu-management" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
-                      Menu Management
-                    </Link>
+                  {user.role === 'staff' && (
+                    <>
+                      <Link to="/menu-management" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
+                        Menu Management
+                      </Link>
+                      <Link to="/order-management" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
+                        Order Management
+                      </Link>
+                    </>
                   )}
                   <Link to="/cart" className="block text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-base font-medium">
                     Cart ({cartItemsCount})

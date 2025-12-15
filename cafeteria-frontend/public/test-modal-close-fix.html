@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>弹窗关闭问题修复测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; border-left: 4px solid #dc3545; }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 弹窗关闭问题修复测试</h1>
+    
+    <div class="test-section info">
+        <h2>📋 问题描述</h2>
+        <p>用户报告：点击上传图片时弹窗会意外关闭</p>
+    </div>
+
+    <div class="test-section success">
+        <h2>✅ 修复内容</h2>
+        <div class="step">
+            <h3>1. 弹窗背景事件处理</h3>
+            <p>添加了 <code>preventDefault()</code> 和 <code>stopPropagation()</code> 到弹窗背景</p>
+        </div>
+        
+        <div class="step">
+            <h3>2. 弹窗内容区域事件处理</h3>
+            <p>确保弹窗内容区域的点击事件不会冒泡到背景</p>
+        </div>
+        
+        <div class="step">
+            <h3>3. FileUpload组件事件处理</h3>
+            <p>为所有按钮和文件选择事件添加了事件阻止</p>
+        </div>
+        
+        <div class="step">
+            <h3>4. 文件输入框事件处理</h3>
+            <p>确保文件选择change事件不会触发意外的弹窗关闭</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        <div class="step">
+            <h3>步骤 1: 登录员工账户</h3>
+            <p>使用 <code>staff@apiu.edu / password</code> 登录</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 打开菜单管理</h3>
+            <p>导航到菜单管理页面</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 打开添加菜单项弹窗</h3>
+            <p>点击"Add Menu Item"按钮</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 4: 测试图片上传</h3>
+            <ul>
+                <li>✅ 点击图片上传区域</li>
+                <li>✅ 弹窗应该保持打开状态</li>
+                <li>✅ 选择图片文件</li>
+                <li>✅ 弹窗应该仍然保持打开状态</li>
+                <li>✅ 图片上传完成后弹窗仍然打开</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 5: 测试其他交互</h3>
+            <ul>
+                <li>✅ 点击弹窗背景 - 弹窗不应该关闭</li>
+                <li>✅ 点击弹窗内容区域 - 弹窗不应该关闭</li>
+                <li>✅ 填写表单字段 - 弹窗不应该关闭</li>
+                <li>✅ 只有点击"创建并关闭"按钮才能关闭弹窗</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>⚠️ 预期行为</h2>
+        <ul>
+            <li><strong>图片上传</strong>：点击上传区域和选择文件都不会关闭弹窗</li>
+            <li><strong>背景点击</strong>：点击弹窗背景不会关闭弹窗</li>
+            <li><strong>表单交互</strong>：所有表单操作都不会关闭弹窗</li>
+            <li><strong>唯一关闭方式</strong>：只能通过"创建并关闭"或"更新并关闭"按钮关闭</li>
+        </ul>
+    </div>
+
+    <div class="test-section error">
+        <h2>🚨 如果问题仍然存在</h2>
+        <p>如果点击上传图片时弹窗仍然关闭，请检查：</p>
+        <ul>
+            <li>浏览器控制台是否有JavaScript错误</li>
+            <li>是否有其他事件监听器干扰</li>
+            <li>React组件是否正确重新渲染</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 快速链接</h2>
+        <p><a href="http://localhost:3000" target="_blank">打开应用程序</a></p>
+        <p><a href="http://localhost:3000/login" target="_blank">登录页面</a></p>
+    </div>
+
+    <script>
+        console.log('弹窗关闭问题修复测试页面已加载');
+        console.log('请按照上述步骤测试弹窗关闭问题是否已修复');
+        
+        // 添加一些调试信息
+        window.addEventListener('click', function(e) {
+            console.log('全局点击事件:', e.target);
+        });
+    </script>
+</body>
+</html>

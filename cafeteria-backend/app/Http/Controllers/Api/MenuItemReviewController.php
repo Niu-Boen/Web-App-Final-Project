@@ -11,10 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MenuItemReviewController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
 
     // Get reviews for a menu item
     public function index($menuItemId)

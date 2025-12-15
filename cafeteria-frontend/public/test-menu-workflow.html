@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Management Workflow Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border-left: 4px solid #28a745; }
+        .info { background: #d1ecf1; border-left: 4px solid #17a2b8; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🍽️ Menu Management Workflow Test</h1>
+    
+    <div class="test-section info">
+        <h2>📋 Test Instructions</h2>
+        <p>This test verifies the fixed menu item image upload workflow.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Fixed Issues</h2>
+        <div class="step success">
+            <h3>✅ Issue 1: Modal Auto-Closing</h3>
+            <p><strong>Problem:</strong> Modal was closing automatically after image upload</p>
+            <p><strong>Solution:</strong> Removed automatic modal closing from FileUpload component</p>
+        </div>
+        
+        <div class="step success">
+            <h3>✅ Issue 2: Workflow Clarity</h3>
+            <p><strong>Problem:</strong> Users didn't understand the required workflow</p>
+            <p><strong>Solution:</strong> Added clear step indicators and visual feedback</p>
+        </div>
+        
+        <div class="step success">
+            <h3>✅ Issue 3: Save Button State</h3>
+            <p><strong>Problem:</strong> Users could save without uploading image</p>
+            <p><strong>Solution:</strong> Disabled save button until image is uploaded for new items</p>
+        </div>
+        
+        <div class="step success">
+            <h3>✅ Issue 4: Modal Closing Logic</h3>
+            <p><strong>Problem:</strong> Users could accidentally close modal without saving</p>
+            <p><strong>Solution:</strong> Removed cancel button, modal only closes through save button</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 测试步骤</h2>
+        <div class="step">
+            <h3>步骤 1: 以员工身份登录</h3>
+            <p>使用员工凭据登录: <code>staff@apiu.edu / password</code></p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 2: 导航到菜单管理</h3>
+            <p>从导航栏进入菜单管理页面</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 3: 添加新菜单项</h3>
+            <p>点击"Add Menu Item"按钮打开弹窗</p>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 4: 验证工作流程指示器</h3>
+            <ul>
+                <li>✅ 应该看到工作流程说明: "1️⃣ 上传图片 → 2️⃣ 填写详细信息 → 3️⃣ 点击创建保存"</li>
+                <li>✅ 应该看到红色警告: "第一步: 请先上传图片，然后再保存菜单项"</li>
+                <li>✅ 创建按钮应该被禁用</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 5: 上传图片</h3>
+            <ul>
+                <li>✅ 点击图片上传区域</li>
+                <li>✅ 选择一个图片文件</li>
+                <li>✅ 弹窗应该保持打开状态（不会自动关闭）</li>
+                <li>✅ 应该看到绿色成功消息</li>
+                <li>✅ 创建按钮应该变为可用</li>
+            </ul>
+        </div>
+        
+        <div class="step">
+            <h3>步骤 6: 填写表单并保存</h3>
+            <ul>
+                <li>✅ 填写必填字段（名称、类别、价格）</li>
+                <li>✅ 点击"创建并关闭"按钮</li>
+                <li>✅ 弹窗应该关闭并且菜单项应该被保存</li>
+                <li>⚠️ 注意：没有取消按钮，只能通过保存按钮关闭弹窗</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section warning">
+        <h2>⚠️ 预期行为</h2>
+        <ul>
+            <li><strong>新工作流程:</strong> 上传图片 → 填写详细信息 → 点击保存并关闭</li>
+            <li><strong>弹窗保持打开</strong> 图片上传后不自动关闭</li>
+            <li><strong>只能通过保存按钮关闭</strong> 移除了取消按钮</li>
+            <li><strong>清晰的视觉反馈</strong> 每个步骤都有提示</li>
+            <li><strong>保存按钮禁用</strong> 直到图片上传完成（仅新建项目）</li>
+            <li><strong>编辑项目</strong> 可以在不更改图片的情况下保存</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🔗 Quick Links</h2>
+        <p><a href="http://localhost:3000" target="_blank">Open Application</a></p>
+        <p><a href="http://localhost:3000/login" target="_blank">Login Page</a></p>
+    </div>
+
+    <script>
+        console.log('Menu Management Workflow Test Page Loaded');
+        console.log('Test the workflow by following the steps above');
+    </script>
+</body>
+</html>

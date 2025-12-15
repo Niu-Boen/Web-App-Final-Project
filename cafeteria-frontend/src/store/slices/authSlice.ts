@@ -16,12 +16,23 @@ const initialState: AuthState = {
   error: null,
 };
 
+console.log('AuthSlice initial state:', {
+  token: localStorage.getItem('token'),
+  hasToken: !!localStorage.getItem('token')
+});
+
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await api.post<ApiResponse<{ user: User; token: string }>>('/login', credentials);
-      return response.data.data!;
+      console.log('Login API Response:', response.data);
+      
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      } else {
+        return rejectWithValue({ message: response.data.message || 'Login failed' });
+      }
     } catch (error: any) {
       console.error('Login API Error:', error.response?.data);
       return rejectWithValue(error.response?.data || { message: 'Login failed' });
@@ -85,13 +96,24 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user;
+        // Convert account_balance to number if it's a string
+        const user = {
+          ...action.payload.user,
+          account_balance: typeof action.payload.user.account_balance === 'string' 
+            ? parseFloat(action.payload.user.account_balance) 
+            : action.payload.user.account_balance
+        };
+        state.user = user;
         state.token = action.payload.token;
+        state.error = null;
         localStorage.setItem('token', action.payload.token);
+        console.log('Login fulfilled - user set:', user);
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message || action.error.message || 'Login failed';
+        const payload = action.payload as { message?: string };
+        state.error = payload?.message || action.error?.message || 'Login failed';
+        console.error('Login failed:', payload, action.error);
       })
       // Register
       .addCase(register.pending, (state) => {
@@ -106,7 +128,8 @@ const authSlice = createSlice({
       })
       .addCase(register.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.payload?.message || action.error.message || 'Registration failed';
+        const payload = action.payload as { message?: string };
+        state.error = payload?.message || action.error?.message || 'Registration failed';
       })
       // Logout
       .addCase(logout.fulfilled, (state) => {
@@ -116,7 +139,14 @@ const authSlice = createSlice({
       })
       // Fetch Profile
       .addCase(fetchProfile.fulfilled, (state, action) => {
-        state.user = action.payload;
+        const user = {
+          ...action.payload,
+          account_balance: typeof action.payload.account_balance === 'string' 
+            ? parseFloat(action.payload.account_balance) 
+            : action.payload.account_balance
+        };
+        state.user = user;
+        console.log('Profile fetched - user set:', user);
       });
   },
 });

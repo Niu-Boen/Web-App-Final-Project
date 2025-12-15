@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState, AppDispatch } from './store/store';
@@ -16,13 +16,16 @@ import Menu from './pages/Menu';
 import Cart from './pages/Cart';
 import Orders from './pages/Orders';
 import Profile from './pages/Profile';
-import Dashboard from './pages/Dashboard';
+
+import AdminDashboard from './pages/AdminDashboard';
 import TrustedFriends from './pages/TrustedFriends';
 import TestFeatures from './pages/TestFeatures';
 import Statistics from './pages/Statistics';
 import FinanceManagement from './pages/FinanceManagement';
 import MenuItemDetail from './pages/MenuItemDetail';
 import MenuManagement from './pages/MenuManagement';
+import OrderManagement from './pages/OrderManagement';
+import ImageUpload from './pages/ImageUpload';
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -59,11 +62,13 @@ function App() {
           <Route path="cart" element={<Cart />} />
           <Route path="orders" element={<Orders />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="trusted-friends" element={<TrustedFriends />} />
           <Route path="statistics" element={<Statistics />} />
           <Route path="finance-management" element={<FinanceManagement />} />
           <Route path="menu-management" element={<MenuManagement />} />
+          <Route path="order-management" element={<OrderManagement />} />
+          <Route path="image-upload" element={<ImageUpload />} />
           <Route path="test-features" element={<TestFeatures />} />
         </Route>
       </Route>

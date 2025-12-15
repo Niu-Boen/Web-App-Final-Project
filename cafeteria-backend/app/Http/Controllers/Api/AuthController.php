@@ -67,16 +67,29 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        // Find user by email
+        $user = User::where('email', $request->email)->first();
+
+        // Check if user exists and password is correct
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid credentials'
             ], 401);
         }
 
-        $user = User::where('email', $request->email)->firstOrFail();
+        // Check if user is active
+        if (!$user->is_active) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Account is inactive. Please contact administrator.'
+            ], 403);
+        }
+
+        // Update last login time
         $user->update(['last_login_at' => now()]);
         
+        // Create token
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

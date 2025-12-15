@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AdminController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-        $this->middleware('role:admin');
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
 
     // User Management - Admin can only manage user ID, password, and status
     public function getAllUsers(Request $request)
@@ -153,7 +149,7 @@ class AdminController extends Controller
     public function updateUserRole(Request $request, $userId)
     {
         $validator = Validator::make($request->all(), [
-            'role' => 'required|in:admin,staff,student',
+            'role' => 'required|in:admin,staff,student,finance',
             'reason' => 'required|string|max:255'
         ]);
 

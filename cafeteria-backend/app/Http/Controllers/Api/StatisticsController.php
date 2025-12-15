@@ -14,10 +14,7 @@ use Carbon\Carbon;
 
 class StatisticsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
 
     // Get user's own consumption statistics
     public function getUserConsumptionStats(Request $request)
@@ -53,9 +50,9 @@ class StatisticsController extends Controller
             ->orderBy('total_spent', 'desc')
             ->get();
 
-        // Monthly spending (last 12 months)
-        $monthlySpending = Order::selectRaw('YEAR(created_at) as year')
-            ->selectRaw('MONTH(created_at) as month')
+        // Monthly spending (last 12 months) - SQLite compatible
+        $monthlySpending = Order::selectRaw("strftime('%Y', created_at) as year")
+            ->selectRaw("strftime('%m', created_at) as month")
             ->selectRaw('SUM(total_amount) as total_spent')
             ->selectRaw('COUNT(*) as order_count')
             ->where('user_id', $userId)
@@ -84,10 +81,10 @@ class StatisticsController extends Controller
         $totalOrders = $user->orders()->where('payment_status', 'paid')->count();
         $averageOrderValue = $totalOrders > 0 ? $totalSpent / $totalOrders : 0;
 
-        // Favorite time of day for ordering
+        // Favorite time of day for ordering - SQLite compatible
         $favoriteTime = Order::where('user_id', $userId)
             ->where('payment_status', 'paid')
-            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as count')
+            ->selectRaw("strftime('%H', created_at) as hour, COUNT(*) as count")
             ->groupBy('hour')
             ->orderBy('count', 'desc')
             ->first();
@@ -149,20 +146,20 @@ class StatisticsController extends Controller
         $user = $request->user();
         $userId = $user->id;
 
-        // User's monthly spending
+        // User's monthly spending - SQLite compatible
         $userMonthlySpending = Order::where('user_id', $userId)
             ->where('payment_status', 'paid')
             ->where('created_at', '>=', Carbon::now()->subMonths(6))
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, SUM(total_amount) as total')
+            ->selectRaw("strftime('%Y', created_at) as year, strftime('%m', created_at) as month, SUM(total_amount) as total")
             ->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')
             ->get();
 
-        // Average monthly spending of all users
+        // Average monthly spending of all users - SQLite compatible
         $averageMonthlySpending = Order::where('payment_status', 'paid')
             ->where('created_at', '>=', Carbon::now()->subMonths(6))
-            ->selectRaw('YEAR(created_at) as year, MONTH(created_at) as month, AVG(total_amount) as average')
+            ->selectRaw("strftime('%Y', created_at) as year, strftime('%m', created_at) as month, AVG(total_amount) as average")
             ->groupBy('year', 'month')
             ->orderBy('year')
             ->orderBy('month')

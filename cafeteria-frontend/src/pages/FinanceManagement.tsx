@@ -22,7 +22,7 @@ const FinanceManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    if (user?.email === 'finance@apiu.edu') {
+    if (user?.role === 'finance') {
       // Fetch users directly using API call since finance manager needs access
       fetchAllUsers();
       dispatch(fetchFinancialReport());
@@ -31,7 +31,7 @@ const FinanceManagement: React.FC = () => {
 
   const fetchAllUsers = async () => {
     try {
-      const response = await api.get('/admin/users');
+      const response = await api.get('/finance/users');
       // Update the users in the admin slice manually
       dispatch({ type: 'admin/fetchUsers/fulfilled', payload: response.data });
     } catch (error) {
@@ -57,7 +57,8 @@ const FinanceManagement: React.FC = () => {
       setBalanceModal(false);
       setBalanceForm({ amount: '', operation: 'add', reason: '' });
       setSelectedUser(null);
-      dispatch(fetchUsers());
+      // Refresh users list
+      fetchAllUsers();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update balance');
     }
@@ -69,7 +70,7 @@ const FinanceManagement: React.FC = () => {
     u.student_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!user || user.email !== 'finance@apiu.edu') {
+  if (!user || user.role !== 'finance') {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
@@ -191,13 +192,14 @@ const FinanceManagement: React.FC = () => {
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                         user.role === 'admin' ? 'bg-red-100 text-red-800' :
                         user.role === 'staff' ? 'bg-blue-100 text-blue-800' :
+                        user.role === 'finance' ? 'bg-purple-100 text-purple-800' :
                         'bg-green-100 text-green-800'
                       }`}>
                         {user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">฿{user.account_balance.toFixed(2)}</div>
+                      <div className="text-sm font-medium text-gray-900">฿{parseFloat(user.account_balance.toString()).toFixed(2)}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -236,7 +238,7 @@ const FinanceManagement: React.FC = () => {
                 Update Balance for {selectedUser.name}
               </h3>
               <div className="mb-4 p-3 bg-gray-100 rounded">
-                <p className="text-sm text-gray-600">Current Balance: <span className="font-semibold">฿{selectedUser.account_balance.toFixed(2)}</span></p>
+                <p className="text-sm text-gray-600">Current Balance: <span className="font-semibold">฿{parseFloat(selectedUser.account_balance.toString()).toFixed(2)}</span></p>
               </div>
               <div className="space-y-4">
                 <div>

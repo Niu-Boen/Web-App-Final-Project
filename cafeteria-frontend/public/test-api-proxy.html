@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Proxy</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Test API Proxy</h1>
+    
+    <div class="test-section">
+        <h3>1. Test Direct API Call</h3>
+        <button onclick="testDirectAPI()">Test Direct API</button>
+        <div id="directResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Test Proxy API Call</h3>
+        <button onclick="testProxyAPI()">Test Proxy API</button>
+        <div id="proxyResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>3. Test Staff Login + Orders</h3>
+        <button onclick="testStaffOrders()">Test Staff Orders</button>
+        <div id="staffResult"></div>
+    </div>
+
+    <script>
+        async function testDirectAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('directResult').innerHTML = 
+                        `<span class="success">✓ Direct API works! User: ${data.data.user.name}</span>`;
+                } else {
+                    document.getElementById('directResult').innerHTML = 
+                        `<span class="error">✗ Direct API failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('directResult').innerHTML = 
+                    `<span class="error">✗ Direct API error: ${error.message}</span>`;
+            }
+        }
+
+        async function testProxyAPI() {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('proxyResult').innerHTML = 
+                        `<span class="success">✓ Proxy API works! User: ${data.data.user.name}</span>`;
+                } else {
+                    document.getElementById('proxyResult').innerHTML = 
+                        `<span class="error">✗ Proxy API failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('proxyResult').innerHTML = 
+                    `<span class="error">✗ Proxy API error: ${error.message}</span>`;
+            }
+        }
+
+        async function testStaffOrders() {
+            try {
+                // First login
+                const loginResponse = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                
+                if (!loginData.success) {
+                    throw new Error('Login failed: ' + loginData.message);
+                }
+
+                const token = loginData.data.token;
+
+                // Then fetch orders
+                const ordersResponse = await fetch('/api/orders/all', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                const ordersData = await ordersResponse.json();
+                
+                if (ordersData.success) {
+                    document.getElementById('staffResult').innerHTML = 
+                        `<span class="success">✓ Staff orders API works! Found ${ordersData.data.length} orders</span>`;
+                } else {
+                    document.getElementById('staffResult').innerHTML = 
+                        `<span class="error">✗ Staff orders failed: ${ordersData.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('staffResult').innerHTML = 
+                    `<span class="error">✗ Staff orders error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

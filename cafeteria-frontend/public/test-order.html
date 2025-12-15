@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Order Creation</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        pre { background: #f8f9fa; padding: 10px; overflow: auto; }
+        button { margin: 5px; padding: 10px; }
+        input, select { margin: 5px; padding: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test Order Creation</h1>
+    
+    <div>
+        <h3>Login</h3>
+        <select id="userSelect">
+            <option value="admin@apiu.edu">Admin User</option>
+            <option value="john@student.apiu.edu">John Doe (Student)</option>
+            <option value="jane@student.apiu.edu">Jane Smith (Student)</option>
+        </select>
+        <button onclick="login()">Login</button>
+    </div>
+    
+    <div>
+        <h3>Create Order</h3>
+        <label>Menu Item ID: <input type="number" id="menuItemId" value="1"></label><br>
+        <label>Quantity: <input type="number" id="quantity" value="1"></label><br>
+        <label>Special Requests: <input type="text" id="specialRequests" placeholder="Optional"></label><br>
+        <button onclick="createOrder()">Create Order</button>
+        <button onclick="getProfile()">Check Balance</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        let token = null;
+        let currentUser = null;
+        
+        function addResult(title, content, isError = false) {
+            const div = document.createElement('div');
+            div.className = 'result ' + (isError ? 'error' : 'success');
+            div.innerHTML = `<h3>${title}</h3><pre>${content}</pre>`;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+        
+        async function login() {
+            const email = document.getElementById('userSelect').value;
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: email,
+                        password: 'password'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    token = data.data.token;
+                    currentUser = data.data.user;
+                    addResult('✅ Login Success', 
+                        `User: ${currentUser.name}\n` +
+                        `Email: ${currentUser.email}\n` +
+                        `Role: ${currentUser.role}\n` +
+                        `Balance: ฿${parseFloat(currentUser.account_balance).toFixed(2)}`
+                    );
+                } else {
+                    addResult('❌ Login Failed', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                addResult('❌ Login Error', error.message, true);
+            }
+        }
+        
+        async function getProfile() {
+            if (!token) {
+                addResult('❌ Error', 'Please login first', true);
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/profile', {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    currentUser = data.data;
+                    addResult('✅ Profile Updated', 
+                        `Balance: ฿${parseFloat(currentUser.account_balance).toFixed(2)}`
+                    );
+                } else {
+                    addResult('❌ Profile Error', JSON.stringify(data, null, 2), true);
+                }
+            } catch (error) {
+                addResult('❌ Profile Error', error.message, true);
+            }
+        }
+        
+        async function createOrder() {
+            if (!token) {
+                addResult('❌ Error', 'Please login first', true);
+                return;
+            }
+            
+            const menuItemId = parseInt(document.getElementById('menuItemId').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const specialRequests = document.getElementById('specialRequests').value;
+            
+            const orderData = {
+                items: [{
+                    menu_item_id: menuItemId,
+                    quantity: quantity,
+                    special_requests: specialRequests || undefined
+                }]
+            };
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(orderData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    addResult(`✅ Order Created (${response.status})`, 
+                        `Order Number: ${data.data.order_number}\n` +
+                        `Total Amount: ฿${data.data.total_amount}\n` +
+                        `Status: ${data.data.status}\n` +
+                        `Payment Status: ${data.data.payment_status}\n` +
+                        `Items: ${data.data.order_items ? data.data.order_items.length : 0}`
+                    );
+                    
+                    // Refresh profile to see updated balance
+                    setTimeout(getProfile, 500);
+                } else {
+                    addResult(`❌ Order Failed (${response.status})`, 
+                        `Message: ${data.message}\n` +
+                        `${data.errors ? JSON.stringify(data.errors, null, 2) : ''}`, 
+                        true
+                    );
+                }
+            } catch (error) {
+                addResult('❌ Order Error', error.message, true);
+            }
+        }
+    </script>
+</body>
+</html>

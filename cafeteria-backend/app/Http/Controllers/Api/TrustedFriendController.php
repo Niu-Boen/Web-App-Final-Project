@@ -12,10 +12,7 @@ use Carbon\Carbon;
 
 class TrustedFriendController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // In Laravel 11+, middleware is applied via routes, not in constructor
 
     // Get user's trusted friends
     public function index()
@@ -286,7 +283,7 @@ class TrustedFriendController extends Controller
     public function searchUsers(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'search' => 'required|string|min:2'
+            'search' => 'nullable|string|min:1'
         ]);
 
         if ($validator->fails()) {
@@ -300,17 +297,22 @@ class TrustedFriendController extends Controller
         $search = $request->search;
         $currentUserId = auth()->id();
 
-        $users = User::where('id', '!=', $currentUserId)
-            ->where('is_active', true)
-            ->where(function($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('student_id', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
-            })
-            ->select('id', 'student_id', 'name', 'email', 'avatar', 'account_balance')
+        $query = User::where('id', '!=', $currentUserId)
+            ->where('is_active', true);
+
+        // If search term is provided, filter by it
+        if (!empty($search)) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->select('id', 'student_id', 'name', 'email', 'avatar', 'account_balance')
             ->orderBy('student_id')
             ->orderBy('name')
-            ->limit(10)
+            ->limit(20) // Increased limit for better search results
             ->get();
 
         return response()->json([

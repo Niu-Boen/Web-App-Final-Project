@@ -4,7 +4,7 @@ import { toast } from 'react-toastify';
 import api from '../services/api';
 
 interface FileUploadProps {
-  type: 'avatar' | 'menu-item';
+  type: 'avatar' | 'menu-item' | 'menu-item-image';
   currentImage?: string;
   onUploadSuccess: (imageUrl: string, imagePath: string) => void;
   menuItemId?: number;
@@ -23,6 +23,9 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    // 不要对change事件调用preventDefault，这会阻止文件选择
+    event.stopPropagation();
+    
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -82,7 +85,10 @@ const FileUpload: React.FC<FileUploadProps> = ({
         
         if (response.data.success) {
           onUploadSuccess(response.data.data.image_url, response.data.data.image_path);
-          toast.success('Image uploaded successfully!');
+          // Don't show toast here for menu items - let parent component handle it
+          if (type === 'menu-item') {
+            toast.success('Image uploaded successfully!');
+          }
         }
       }
     } catch (error: any) {
@@ -101,7 +107,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
     }
   };
 
-  const triggerFileSelect = () => {
+  const triggerFileSelect = (e?: React.MouseEvent) => {
+    if (e) {
+      // 只阻止事件冒泡，不阻止默认行为，这样文件选择器可以正常打开
+      e.stopPropagation();
+    }
     fileInputRef.current?.click();
   };
 
@@ -128,7 +138,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           {/* Overlay with actions */}
           <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center space-x-2">
             <button
-              onClick={triggerFileSelect}
+              onClick={(e) => triggerFileSelect(e)}
               disabled={isUploading}
               className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
               title="Change image"
@@ -136,7 +146,11 @@ const FileUpload: React.FC<FileUploadProps> = ({
               <Upload size={16} className="text-gray-700" />
             </button>
             <button
-              onClick={handleRemoveImage}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleRemoveImage();
+              }}
               disabled={isUploading}
               className="p-2 bg-white rounded-full hover:bg-gray-100 transition-colors"
               title="Remove image"
@@ -153,7 +167,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
         </div>
       ) : (
         <button
-          onClick={triggerFileSelect}
+          onClick={(e) => triggerFileSelect(e)}
           disabled={isUploading}
           className={`border-2 border-dashed border-gray-300 rounded-lg hover:border-primary-500 transition-colors flex flex-col items-center justify-center text-gray-500 hover:text-primary-600 ${
             type === 'avatar' ? 'w-24 h-24 rounded-full' : 'w-full h-48'

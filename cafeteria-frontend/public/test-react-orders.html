@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test React Orders</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; }
+        .success { color: green; }
+        .error { color: red; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Test React Orders Access</h1>
+    
+    <div class="test-section">
+        <h3>Instructions:</h3>
+        <ol>
+            <li>Click "Login as Staff" to set up authentication</li>
+            <li>Then click "Open Order Management" to access the React page</li>
+            <li>Check browser console for any errors</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>1. Login as Staff</h3>
+        <button onclick="loginAsStaff()">Login as Staff</button>
+        <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>2. Open Order Management</h3>
+        <button onclick="openOrderManagement()">Open Order Management</button>
+        <div id="openResult"></div>
+    </div>
+
+    <script>
+        async function loginAsStaff() {
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: 'staff@apiu.edu',
+                        password: 'password'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Store token in localStorage for React app
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data.user));
+                    
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="success">✓ Logged in as ${data.data.user.name} (${data.data.user.role})</span>
+                         <br>Token stored in localStorage`;
+                } else {
+                    document.getElementById('loginResult').innerHTML = 
+                        `<span class="error">✗ Login failed: ${data.message}</span>`;
+                }
+            } catch (error) {
+                document.getElementById('loginResult').innerHTML = 
+                    `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        function openOrderManagement() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('openResult').innerHTML = 
+                    '<span class="error">Please login first</span>';
+                return;
+            }
+
+            document.getElementById('openResult').innerHTML = 
+                '<span class="success">Opening Order Management page...</span>';
+            
+            // Open in new tab
+            window.open('http://localhost:3000/order-management', '_blank');
+        }
+    </script>
+</body>
+</html>
